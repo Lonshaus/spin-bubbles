@@ -51,12 +51,20 @@ button {
 
 /* ---------- HUD ---------- */
 
+/* 分數列與下方按鈕列都和盤面同寬（--board-w 由程式依盤面實際寬度設定） */
+#hud,
+#controls {
+  width: min(calc(100% - 24px), var(--board-w, 640px));
+  margin: 0 auto;
+}
+
 #hud {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px 4px;
-  z-index: 2;
+  padding: 12px 0 4px;
 }
 
 .stat {
@@ -126,10 +134,16 @@ button.icon:hover {
 
 /* ---------- 舞台 ---------- */
 
+/* 3D 畫面鋪滿整個視窗，分數列與按鈕列浮在上面 */
 #stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
+}
+
+#play-area {
   flex: 1;
   min-height: 0;
+  pointer-events: none;
 }
 
 #stage canvas {
@@ -225,23 +239,32 @@ button.icon:hover {
   }
 }
 
-/* ---------- 觸控按鈕 ---------- */
+/* ---------- 下方按鈕列：左提示、右切換方向 ---------- */
 
-#touch {
+#controls {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 20px 14px;
+  padding: 6px 0 14px;
 }
 
-button.icon.dir {
+button.round {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   font-size: 24px;
-  font-weight: 900;
-  color: var(--accent);
+  background: var(--button-2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#touch-tip {
+button.round:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#controls-tip {
   flex: 1;
   text-align: center;
   font-size: 13px;
@@ -262,6 +285,20 @@ button.spin {
 button.spin:active {
   transform: translateY(4px);
   box-shadow: 0 2px 0 #1b2a80;
+}
+
+/* 滑鼠操作時按鈕不用那麼大 */
+@media (pointer: fine) {
+  button.spin {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+  }
+  button.round {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
 }
 
 /* ---------- 畫面（選單、說明、設定…） ---------- */
@@ -476,7 +513,7 @@ button.toggle[aria-pressed='true'] {
 
 @media (max-width: 520px) {
   #hud {
-    padding: 8px 10px 2px;
+    padding: 8px 0 2px;
     gap: 6px;
   }
   .stat {

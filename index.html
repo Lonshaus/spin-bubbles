@@ -20,6 +20,11 @@
   </head>
   <body>
     <div id="app">
+      <div id="stage">
+        <div id="float-layer"></div>
+        <div id="callout"></div>
+      </div>
+
       <header id="hud" class="hidden">
         <div class="stat">
           <span class="label" data-i18n="score"></span>
@@ -34,21 +39,18 @@
           <span id="best" class="value">0</span>
         </div>
         <div class="buttons">
-          <button id="btn-dir" class="icon dir">↻</button>
-          <button id="btn-hint" class="icon" data-i18n-title="hint">💡</button>
           <button id="btn-pause" class="icon" data-i18n-title="pause">⏸</button>
         </div>
       </header>
 
-      <main id="stage">
-        <div id="float-layer"></div>
-        <div id="callout"></div>
+      <main id="play-area">
         <noscript>這個遊戲需要 JavaScript。</noscript>
       </main>
 
-      <footer id="touch" class="hidden">
-        <span id="touch-tip" data-i18n="touch.tip"></span>
-        <button id="btn-dir-touch" class="spin dir">↻</button>
+      <footer id="controls" class="hidden">
+        <button id="btn-hint" class="round" data-i18n-title="hint">💡</button>
+        <span id="controls-tip"></span>
+        <button id="btn-dir" class="spin">↻</button>
       </footer>
 
       <section id="screen-title" class="screen">

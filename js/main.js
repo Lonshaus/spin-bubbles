@@ -14,7 +14,7 @@ import * as store from './ui/storage.js';
 const $ = (id) => document.getElementById(id);
 
 const settings = store.loadSettings();
-const stage = new Stage($('stage'));
+const stage = new Stage($('stage'), $('play-area'));
 const board = new BoardView(stage);
 const fx = new Fx(stage.root);
 const tweens = new Tweens();
@@ -22,6 +22,9 @@ const audio = new Sound();
 const hud = new Hud(stage);
 const director = new Director({ board, fx, tweens, audio, hud, stage });
 const coarsePointer = matchMedia('(pointer: coarse)').matches;
+
+// 分數列與下方按鈕列跟盤面同寬，視覺上對齊
+stage.onLayout = (width) => document.documentElement.style.setProperty('--board-w', `${Math.round(width)}px`);
 
 let game = null;
 let mode = 'classic';
@@ -51,6 +54,7 @@ function applySettings() {
     $(id).setAttribute('aria-pressed', String(on));
   }
   updateDirUi();
+  showChrome();
   $('best-classic').textContent = store.loadBest('classic').toLocaleString();
   $('best-bomb').textContent = store.loadBest('bomb').toLocaleString();
 }
@@ -76,8 +80,8 @@ const closeScreen = () => setScreens(screens.slice(0, -1));
 function showChrome() {
   const inGame = state !== 'title';
   $('hud').classList.toggle('hidden', !inGame);
-  $('touch').classList.toggle('hidden', !(inGame && touchMode));
-  $('btn-dir').classList.toggle('hidden', touchMode);
+  $('controls').classList.toggle('hidden', !inGame);
+  $('controls-tip').textContent = t(touchMode ? 'touch.tip' : 'mouse.tip');
 }
 
 // ---------- 旋轉方向 ----------
@@ -91,12 +95,10 @@ function toggleDir() {
 }
 
 function updateDirUi() {
-  for (const id of ['btn-dir', 'btn-dir-touch']) {
-    const btn = $(id);
-    btn.textContent = spinDir === 'cw' ? '↻' : '↺';
-    btn.title = `${t(`touch.${spinDir}`)} — ${t('dir.toggle')}`;
-    btn.setAttribute('aria-label', btn.title);
-  }
+  const btn = $('btn-dir');
+  btn.textContent = spinDir === 'cw' ? '↻' : '↺';
+  btn.title = `${t(`touch.${spinDir}`)} — ${t('dir.toggle')}`;
+  btn.setAttribute('aria-label', btn.title);
   board.setDirection(spinDir);
 }
 
@@ -341,7 +343,6 @@ $('btn-restart').addEventListener('click', () => startGame(mode));
 $('btn-pause').addEventListener('click', pause);
 $('btn-hint').addEventListener('click', hint);
 $('btn-dir').addEventListener('click', toggleDir);
-$('btn-dir-touch').addEventListener('click', toggleDir);
 $('set-lang').addEventListener('change', (e) => changeSetting('lang', e.target.value));
 $('set-quality').addEventListener('change', (e) => changeSetting('quality', e.target.value));
 $('set-sfx').addEventListener('click', (e) => {

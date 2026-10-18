@@ -52,10 +52,11 @@ const DICT = {
     'touch.cw': '順時針',
     'touch.tip': '點一下選取，再點一次旋轉',
     'dir.toggle': '點這裡切換方向',
+    'mouse.tip': '左鍵旋轉・右鍵或空白鍵切換方向',
     howtoBody: `
       <h3>基本玩法</h3>
       <p>把游標移到三顆球的交會點，三顆球會被框起來，<b>按左鍵</b>就往目前的方向旋轉。<br>
-      旋轉方向用<b>一個鍵切換</b>：右鍵、空白鍵或右上角的 ↻ / ↺ 按鈕。框框中間的箭頭會顯示目前方向。<br>
+      旋轉方向用<b>一個鍵切換</b>：右鍵、空白鍵或右下角的 ↻ / ↺ 按鈕。框框中間的箭頭會顯示目前方向。<br>
       手機上<b>點一下</b>選取、<b>再點一次</b>旋轉，右下角的大按鈕切換方向。</p>
       <p>一次旋轉最多轉三下，中途一出現配對就停；轉一圈都沒有配對就會回到原位。</p>
       <h3>配對</h3>
@@ -119,10 +120,11 @@ const DICT = {
     'touch.cw': 'Clockwise',
     'touch.tip': 'Tap to select, tap again to spin',
     'dir.toggle': 'click to switch direction',
+    'mouse.tip': 'Left click to spin · right click or Space to switch direction',
     howtoBody: `
       <h3>Basics</h3>
       <p>Point at a spot where three bubbles meet to select them, then <b>left click</b> to spin in the current direction.<br>
-      <b>One key switches direction</b>: right click, Space, or the ↻ / ↺ button at the top right. The arrow in the middle of the selection shows the current direction.<br>
+      <b>One key switches direction</b>: right click, Space, or the ↻ / ↺ button at the bottom right. The arrow in the middle of the selection shows the current direction.<br>
       On touch screens, <b>tap</b> to select and <b>tap again</b> to spin; the big button at the bottom right switches direction.</p>
       <p>A spin turns up to three times and stops as soon as a match appears. If nothing matches, the bubbles return to where they started.</p>
       <h3>Matches</h3>
@@ -186,10 +188,11 @@ const DICT = {
     'touch.cw': '時計回り',
     'touch.tip': 'タップで選択、もう一度タップで回転',
     'dir.toggle': 'クリックで向きを切り替え',
+    'mouse.tip': '左クリックで回転・右クリックかスペースで向きを切り替え',
     howtoBody: `
       <h3>基本</h3>
       <p>3つのバブルが接する点にカーソルを合わせると選択され、<b>左クリック</b>で今の向きに回転します。<br>
-      回転の向きは<b>ひとつのキーで切り替え</b>：右クリック、スペースキー、右上の ↻ / ↺ ボタン。選択枠の中央の矢印が今の向きです。<br>
+      回転の向きは<b>ひとつのキーで切り替え</b>：右クリック、スペースキー、右下の ↻ / ↺ ボタン。選択枠の中央の矢印が今の向きです。<br>
       スマホでは<b>タップ</b>で選択、<b>もう一度タップ</b>で回転。右下の大きなボタンで向きを切り替えます。</p>
       <p>1回の操作で最大3回まで回り、そろった時点で止まります。そろわなければ元の位置に戻ります。</p>
       <h3>マッチ</h3>

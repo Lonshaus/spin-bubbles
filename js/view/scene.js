@@ -10,8 +10,10 @@ const TILT = THREE.MathUtils.degToRad(15);
 const FOV = 30;
 
 export class Stage {
-  constructor(container) {
+  // container：整個畫面大小的 canvas 容器；area：盤面要置中的區域（扣掉上下的按鈕列）
+  constructor(container, area = container) {
     this.container = container;
+    this.area = area;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.95;
@@ -47,7 +49,9 @@ export class Stage {
     this.quality = 'high';
     this.composer = null;
     this.resize();
-    new ResizeObserver(() => this.resize()).observe(container);
+    const observer = new ResizeObserver(() => this.resize());
+    observer.observe(container);
+    observer.observe(area);
   }
 
   setQuality(level) {
@@ -76,12 +80,35 @@ export class Stage {
     this.renderer.setSize(w, h);
     this.composer?.setPixelRatio(this.renderer.getPixelRatio());
     this.composer?.setSize(w, h);
-    this.camera.aspect = w / h;
+
+    // canvas 鋪滿整個畫面，但盤面要置中在 area 裡：
+    // 用一個以 area 中心為中心的虛擬畫框（高 hv）算投影，再用 setViewOffset 只畫 canvas 那一塊
+    const box = this.container.getBoundingClientRect();
+    const rect = this.area.getBoundingClientRect();
+    const areaW = Math.max(1, rect.width);
+    const areaH = Math.max(1, rect.height);
+    const cy = rect.top - box.top + areaH / 2;
+    const hv = 2 * Math.max(cy, h - cy, 1);
     const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     const margin = 1.06;
-    this.distance = Math.max(this.fit.height / 2 / t, this.fit.width / 2 / (t * this.camera.aspect)) * margin + 1;
+    this.distance =
+      Math.max((this.fit.height * hv) / (2 * t * areaH), (this.fit.width * hv) / (2 * t * areaW)) * margin + 1;
+    this.camera.aspect = w / hv;
+    this.camera.setViewOffset(w, hv, 0, hv / 2 - cy, w, h);
     this.camera.updateProjectionMatrix();
     this.placeCamera();
+    this.reportLayout(w);
+  }
+
+  // 盤面最寬處（靠近鏡頭的下緣）在螢幕上的像素寬度
+  reportLayout(viewWidth) {
+    if (!this.onLayout) return;
+    this.camera.updateMatrixWorld();
+    const half = (this.fit.width - 0.8) / 2;
+    const y = this.target.y - (this.fit.height - 1.2) / 2;
+    const left = new THREE.Vector3(-half, y, 0).project(this.camera);
+    const right = new THREE.Vector3(half, y, 0).project(this.camera);
+    this.onLayout(((right.x - left.x) / 2) * viewWidth);
   }
 
   placeCamera() {

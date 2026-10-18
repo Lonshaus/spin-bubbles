@@ -7,6 +7,7 @@ export class Fx {
     this.parent = parent;
     this.bursts = [];
     this.texture = makeDotTexture();
+    this.ringTexture = makeRingTexture();
   }
 
   // points: [{ pos: Vector3, color: hex }]
@@ -56,6 +57,17 @@ export class Fx {
     this.bursts.push({ obj: sprite, age: 0, life, size });
   }
 
+  // 往外擴散的細光環（星星消除用）
+  ring(pos, color, size = 5, life = 0.6) {
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: this.ringTexture, color, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }),
+    );
+    sprite.position.copy(pos);
+    sprite.renderOrder = 6;
+    this.parent.add(sprite);
+    this.bursts.push({ obj: sprite, age: 0, life, size });
+  }
+
   update(dt) {
     for (const b of this.bursts) {
       b.age += dt;
@@ -84,4 +96,20 @@ export class Fx {
     }
     if (dead.length) this.bursts = this.bursts.filter((b) => b.age < b.life);
   }
+}
+
+function makeRingTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const g = canvas.getContext('2d');
+  g.strokeStyle = '#fff';
+  g.lineWidth = 7;
+  g.shadowColor = '#fff';
+  g.shadowBlur = 8;
+  g.beginPath();
+  g.arc(64, 64, 52, 0, Math.PI * 2);
+  g.stroke();
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }

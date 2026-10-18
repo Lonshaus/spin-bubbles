@@ -46,6 +46,8 @@ export class Director {
     const { board, fx } = this;
     const burst = [];
     const center = new THREE.Vector3();
+    const starCenter = new THREE.Vector3();
+    let stars = 0;
 
     for (const r of e.removed) {
       const entry = board.get(r.id);
@@ -53,11 +55,24 @@ export class Director {
       center.add(pos);
       const color = r.kind === 'star' ? STAR_COLOR : BALL_COLORS[r.color];
       burst.push({ pos, color });
+      if (r.kind === 'star') {
+        // 星星：轉一圈縮小消失
+        stars++;
+        starCenter.add(pos);
+        this.tweens
+          .add(0.45, (k) => {
+            entry.body.rotation.z = k * Math.PI * 2;
+            entry.body.scale.setScalar(k < 0.3 ? 1 + k : 1.3 * (1 - (k - 0.3) / 0.7));
+          }, ease.inOut)
+          .then(() => board.remove(r.id));
+        continue;
+      }
       this.tweens
         .add(0.28, (k) => entry.body.scale.setScalar(k < 0.35 ? 1 + k * 0.7 : 1.25 * (1 - (k - 0.35) / 0.65)), ease.linear)
         .then(() => board.remove(r.id));
     }
     if (e.removed.length) center.divideScalar(e.removed.length);
+    if (stars) fx.ring(starCenter.divideScalar(stars), STAR_COLOR, 6, 0.6);
 
     for (const t of e.transforms) {
       board.remove(t.oldId);
@@ -85,7 +100,7 @@ export class Director {
     this.hud.setGoal(e.toGo);
     if (e.pearls) this.stage.shake = 0.5;
 
-    await this.tweens.wait(e.transforms.length ? 0.45 : 0.3);
+    await this.tweens.wait(e.transforms.length || stars ? 0.45 : 0.3);
   }
 
   async fall(e) {

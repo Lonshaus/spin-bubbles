@@ -21,8 +21,15 @@ export class Sound {
     this.muted = false; // 標題畫面自動示範時暫時靜音
   }
 
-  // 瀏覽器規定要在使用者操作後才能出聲
+  // 瀏覽器規定要在使用者操作（click / touchend / keydown）裡才能開始出聲。
+  // 手機上 pointerdown、touchstart 不算，所以由 main.js 在這些事件裡呼叫。
   unlock() {
+    // iPhone 的靜音開關會把 Web Audio 一起靜音，宣告成「播放媒體」就不受影響
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    } catch {
+      // 舊版瀏覽器沒有這個 API
+    }
     if (!this.ctx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if (!Ctx) return;
@@ -39,7 +46,16 @@ export class Sound {
       this.noiseBuffer = this.makeNoise();
       this.echo = this.makeEcho();
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    // iOS 還有 'interrupted' 狀態（例如來電、切到背景後），一樣要 resume
+    if (this.ctx.state !== 'running' && !this.suspendedByPage) this.ctx.resume().catch(() => {});
+    // iOS 舊版的解鎖方式：在使用者操作裡播一段空白聲音
+    if (!this.primed) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.ctx.createBuffer(1, 1, 22050);
+      src.connect(this.ctx.destination);
+      src.start(0);
+      this.primed = true;
+    }
     this.setMusic(this.musicOn);
   }
 
@@ -58,12 +74,15 @@ export class Sound {
     }
   }
 
+  // 切到背景時暫停，回來再繼續
   suspend() {
+    this.suspendedByPage = true;
     this.ctx?.suspend();
   }
 
   resume() {
-    if (this.ctx?.state === 'suspended') this.ctx.resume();
+    this.suspendedByPage = false;
+    if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
   }
 
   get ready() {

@@ -275,7 +275,6 @@ canvas.addEventListener('pointerleave', (e) => {
 });
 
 canvas.addEventListener('pointerdown', (e) => {
-  audio.unlock();
   if (e.pointerType === 'mouse') {
     setTouchMode(false);
     pointer = toNdc(e);
@@ -344,7 +343,10 @@ for (const name of ['pause', 'howto', 'settings']) {
   });
 }
 for (const btn of document.querySelectorAll('[data-action="menu"]')) btn.addEventListener('click', startDemo);
-for (const btn of document.querySelectorAll('button')) btn.addEventListener('pointerdown', () => audio.unlock());
+// 手機瀏覽器只認 click / touchend / keydown 這類「使用者操作」才允許開始播放聲音
+for (const type of ['click', 'touchend', 'pointerup', 'keydown']) {
+  document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
+}
 
 $('btn-again').addEventListener('click', () => startGame(mode));
 $('btn-resume').addEventListener('click', resume);
@@ -404,6 +406,9 @@ window.spinBubbles = {
   },
   get busy() {
     return busy;
+  },
+  get audioState() {
+    return audio.ctx?.state ?? 'none';
   },
   get selected() {
     return selected?.key ?? null;

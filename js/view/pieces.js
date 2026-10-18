@@ -40,12 +40,12 @@ export class BoardView {
           }),
       ),
       star: new THREE.MeshPhysicalMaterial({
-        color: 0xfff4d6,
+        color: 0xffc93a,
         metalness: 1,
-        roughness: 0.15,
+        roughness: 0.18,
         clearcoat: 1,
-        emissive: 0xffe08a,
-        emissiveIntensity: 0.6,
+        emissive: 0xff9d00,
+        emissiveIntensity: 0.45,
         clippingPlanes: clip,
       }),
       pearl: new THREE.MeshPhysicalMaterial({
@@ -134,7 +134,7 @@ export class BoardView {
       label.set(piece.timer);
     }
     if (piece.kind === 'star') {
-      const glow = this.makeGlow(0xfff0b0, 3, 1);
+      const glow = this.makeGlow(0xffc85a, 2.6, 0.7);
       body.add(glow, new THREE.Mesh(this.geo.star, this.mat.star));
     }
     if (piece.kind === 'pearl') {
@@ -382,9 +382,9 @@ function makeBase(grid) {
 
 function makeStarGeometry() {
   const shape = new THREE.Shape();
-  const points = 6;
+  const points = 5;
   for (let k = 0; k < points * 2; k++) {
-    const r = k % 2 ? 0.4 : 0.86;
+    const r = k % 2 ? 0.4 : 0.9;
     const a = Math.PI / 2 + (k * Math.PI) / points;
     const x = Math.cos(a) * r;
     const y = Math.sin(a) * r;
@@ -392,7 +392,9 @@ function makeStarGeometry() {
     else shape.moveTo(x, y);
   }
   const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.08, bevelSegments: 3 });
-  geo.center();
+  // 只把厚度置中；五角星的外框不對稱，整個 center() 會讓旋轉中心偏掉
+  geo.computeBoundingBox();
+  geo.translate(0, 0, -(geo.boundingBox.min.z + geo.boundingBox.max.z) / 2);
   return geo;
 }
 

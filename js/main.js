@@ -240,6 +240,8 @@ async function demoStep() {
 // ---------- 選取 ----------
 
 function select(pivot) {
+  // 原版每移到一個新的選取位置都有一聲很輕的「叮」
+  if (pivot && pivot.key !== selected?.key && state === 'playing') audio.select();
   selected = pivot;
   board.setHighlight(pivot);
 }
@@ -309,10 +311,7 @@ canvas.addEventListener('pointerup', (e) => {
     // 點一下選取，再點同一個位置就旋轉
     const pivot = board.pick(toNdc(e), pivots);
     if (pivot && pivot.key === selected?.key) spin();
-    else {
-      select(pivot);
-      audio.click();
-    }
+    else select(pivot);
   }
 });
 

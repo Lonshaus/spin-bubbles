@@ -140,22 +140,70 @@ export class Sound {
     src.stop(t + dur + 0.05);
   }
 
+  // 以下音色參考原版錄影的頻譜分析（音高、長度、泛音），再用程式合成
+
+  // 選取位置改變：極短的玻璃「叮」（原版約 1.7kHz＋3.6kHz，加一點高頻雜訊）
+  select() {
+    if (!this.ready) return;
+    const now = this.ctx.currentTime;
+    if (now - (this.lastSelect ?? 0) < 0.05) return; // 滑鼠快速掃過時不要連發
+    this.lastSelect = now;
+    this.tone({ freq: 1694, dur: 0.05, vol: 0.035 });
+    this.tone({ freq: 3573, dur: 0.035, vol: 0.02 });
+    this.noise({ dur: 0.025, vol: 0.03, freq: 5500, type: 'highpass' });
+  }
+
+  // 每轉一格：C5 的柔和木槌聲，略帶鈴聲泛音與低音尾巴（原版約 0.2 秒、音高微微下滑）
   rotate() {
     if (!this.ready) return;
-    this.tone({ freq: 380, to: 620, type: 'triangle', dur: 0.08, vol: 0.12 });
-    this.noise({ dur: 0.05, vol: 0.05, freq: 3000 });
+    this.tone({ freq: 523, to: 510, dur: 0.22, vol: 0.2, attack: 0.004 });
+    this.tone({ freq: 464, dur: 0.12, vol: 0.05 });
+    this.tone({ freq: 663, dur: 0.1, vol: 0.04 });
+    this.tone({ freq: 1047, dur: 0.08, vol: 0.05 });
+    this.tone({ freq: 196, dur: 0.3, vol: 0.04, attack: 0.01 });
+    this.tone({ freq: 65, dur: 0.12, vol: 0.04 });
+    this.noise({ dur: 0.03, vol: 0.04, freq: 4500, type: 'highpass' });
   }
 
   // 泡泡破掉的聲音，連鎖越多音越高
-  clear(chain, size) {
+  // 消除：先一聲往上滑的「咻」，接著一個帶爵士味的和弦＋低音「砰」。
+  // 原版第一段是 C4、A4、C5、降E5、G5，兩條泛音交叉滑過；連鎖時換和弦並加上顫音。
+  clear(chain) {
     if (!this.ready) return;
-    const base = 72 + PENTATONIC[Math.min(chain - 1, PENTATONIC.length - 1)];
-    const pops = Math.min(size, 6);
-    for (let k = 0; k < pops; k++) {
-      const f = mtof(base + PENTATONIC[k % 4]);
-      this.tone({ freq: f * 0.6, to: f * 1.4, dur: 0.09, vol: 0.18, at: k * 0.035 });
+    const voicings = [
+      [60, 69, 72, 75, 79], // Cm6
+      [55, 60, 62, 67, 74], // Gsus
+      [62, 71, 74, 77, 81], // Dm6 往上
+      [64, 69, 71, 76, 83],
+      [67, 74, 76, 79, 86],
+    ];
+    const notes = voicings[Math.min(chain, voicings.length) - 1];
+    const lift = Math.max(0, chain - voicings.length) * 2; // 超長連鎖繼續往上
+    if (chain === 1) this.tone({ freq: 120, to: 1500, type: 'triangle', dur: 0.16, vol: 0.06 });
+    const at = chain === 1 ? 0.1 : 0;
+    const bus = this.ctx.createGain();
+    bus.connect(this.sfx);
+    if (chain > 1) {
+      // 連鎖的顫音（原版頻譜上一顆顆的亮點，約每秒 11 下）
+      const lfo = this.ctx.createOscillator();
+      const depth = this.ctx.createGain();
+      lfo.frequency.value = 11;
+      depth.gain.value = 0.35;
+      bus.gain.value = 0.65;
+      lfo.connect(depth).connect(bus.gain);
+      lfo.start(this.ctx.currentTime + at);
+      lfo.stop(this.ctx.currentTime + at + 1);
     }
-    this.tone({ freq: mtof(base + 12), type: 'triangle', dur: 0.35, vol: 0.08, at: 0.05 });
+    // 能量集中在 200～700Hz（原版約九成），高音那兩顆放輕
+    const vols = [0.09, 0.1, 0.08, 0.05, 0.035];
+    notes.forEach((m, k) => this.tone({ freq: mtof(m + lift), dur: 0.65, vol: vols[k], attack: 0.008, at, dest: bus }));
+    // 兩條往中間交叉滑的泛音
+    this.tone({ freq: 880, to: 790, dur: 0.3, vol: 0.015, at, dest: bus });
+    this.tone({ freq: 740, to: 830, dur: 0.3, vol: 0.015, at, dest: bus });
+    this.tone({ freq: mtof(notes[0] + lift + 28), dur: 0.25, vol: 0.015, at, dest: bus });
+    this.tone({ freq: 112, to: 100, dur: 0.5, vol: 0.06, attack: 0.01, at });
+    // 高頻沙沙的閃亮感（原版 2～6kHz 有一層雜訊）
+    this.noise({ dur: 0.55, vol: 0.05, freq: 3000, type: 'highpass', at });
   }
 
   star() {

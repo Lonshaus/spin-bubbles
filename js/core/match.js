@@ -69,6 +69,28 @@ export function findMatches(grid, pieces) {
   return { clusters, flowers, pearls, any: clusters.length + flowers.length + pearls.length > 0 };
 }
 
+// 差一顆就成環：某格周圍 6 格裡有 5 顆同色（→ 星星），或 5 顆星星（→ 黑珍珠）
+export function findNearRings(grid, pieces) {
+  const list = [];
+  for (let i = 0; i < grid.size; i++) {
+    const ring = fullRing(grid, i);
+    if (!ring || !pieces[i] || pieces[i].kind === 'pearl') continue;
+    const counts = new Map();
+    for (const j of ring) {
+      const c = matchColor(pieces[j]);
+      if (c >= 0) counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    for (const [color, n] of counts) {
+      if (n !== 5) continue;
+      const cells = ring.filter((j) => matchColor(pieces[j]) === color);
+      list.push({ type: 'star', center: i, color, cells, missing: ring.find((j) => !cells.includes(j)) });
+    }
+    const stars = ring.filter((j) => pieces[j]?.kind === 'star');
+    if (stars.length === 5) list.push({ type: 'pearl', center: i, cells: stars, missing: ring.find((j) => !stars.includes(j)) });
+  }
+  return list;
+}
+
 // 只判斷有沒有配對（找可走步時大量呼叫，提早結束）
 export function hasMatch(grid, pieces) {
   for (const t of grid.triangles) if (sameColorTriangle(pieces, t.cells)) return true;

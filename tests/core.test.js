@@ -154,6 +154,26 @@ test('周圍 6 顆同色 → 中心變星星', () => {
   assert.ok(game.pieces.some((p) => p.kind === 'star'));
 });
 
+test('差一顆成環時找得到，並指出缺的那一格', () => {
+  const game = new Game({ seed: 13 });
+  const { grid } = game;
+  blankBoard(game);
+  assert.equal(game.nearRings().length, 0);
+  const center = grid.columns[4][4];
+  const ring = grid.neighbors[center];
+  for (const j of ring.slice(0, 5)) game.pieces[j].color = 1;
+  const near = game.nearRings();
+  assert.equal(near.length, 1);
+  assert.equal(near[0].type, 'star');
+  assert.equal(near[0].center, center);
+  assert.equal(near[0].missing, ring[5]);
+
+  blankBoard(game);
+  for (const j of ring.slice(1)) game.pieces[j] = game.newPiece('star');
+  const pearl = game.nearRings().find((n) => n.type === 'pearl');
+  assert.equal(pearl.missing, ring[0]);
+});
+
 test('周圍 6 顆星星 → 中心變黑珍珠', () => {
   const game = new Game({ seed: 9 });
   const { grid } = game;

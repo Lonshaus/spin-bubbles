@@ -64,12 +64,14 @@ export class BoardView {
       hint: new THREE.MeshBasicMaterial({ color: 0x7ef9ff, toneMapped: false, transparent: true }),
     };
     this.glowTexture = makeGlowTexture();
+    this.rimTexture = makeRimTexture();
     this.arrows = { cw: makeArrowTexture(false), ccw: makeArrowTexture(true) };
     this.direction = 'cw';
 
     this.highlight = new THREE.Group();
     this.hint = new THREE.Group();
-    this.group.add(this.highlight, this.hint);
+    this.near = new THREE.Group(); // 差一顆成環的發光提示
+    this.group.add(this.highlight, this.hint, this.near);
   }
 
   // 新的一局：重建底座與所有棋子
@@ -211,6 +213,37 @@ export class BoardView {
     if (this.grid) this.setHighlight(this.highlightPivot ?? null);
   }
 
+  // 差一顆就成環：那 5 顆周圍發光，缺的那格用需要的顏色框起來
+  setNear(list) {
+    this.near.clear();
+    for (const n of list) {
+      const color = n.type === 'pearl' ? 0xfff0b0 : BALL_COLORS[n.color];
+      const rimColor = new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.35);
+      for (const cell of n.cells) {
+        // 疊在球前面的一圈光環，只亮在球的外緣
+        const rim = new THREE.Sprite(
+          new THREE.SpriteMaterial({ map: this.rimTexture, color: rimColor, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }),
+        );
+        // 放在球心深度、不做深度測試，才不會因為鏡頭傾斜而跟球錯位
+        rim.scale.setScalar(2.1);
+        rim.renderOrder = 5;
+        this.cellPos(cell, rim.position);
+        this.near.add(rim);
+      }
+      const material = new THREE.MeshBasicMaterial({ color, toneMapped: false, transparent: true });
+      for (const seg of outerEdges(this.grid, [n.missing])) {
+        const a = this.world(seg[0].x, seg[0].y);
+        const b = this.world(seg[1].x, seg[1].y);
+        const mesh = new THREE.Mesh(this.geo.edge, material);
+        mesh.position.copy(a).add(b).multiplyScalar(0.5);
+        mesh.position.z = 0.5;
+        mesh.scale.x = a.distanceTo(b) + 0.13;
+        mesh.rotation.z = Math.atan2(b.y - a.y, b.x - a.x);
+        this.near.add(mesh);
+      }
+    }
+  }
+
   setHint(pivot) {
     this.buildOutline(this.hint, pivot, this.mat.hint);
   }
@@ -241,6 +274,8 @@ export class BoardView {
     const pulse = 0.65 + 0.35 * Math.sin(this.time * 6);
     this.mat.edge.opacity = pulse;
     this.mat.hint.opacity = 0.5 + 0.5 * Math.sin(this.time * 9);
+    const breathe = 0.5 + 0.5 * Math.sin(this.time * 3.5);
+    for (const obj of this.near.children) obj.material.opacity = 0.35 + 0.65 * breathe;
     for (const e of this.entries.values()) {
       const kind = e.piece.kind;
       if (kind === 'star') {
@@ -368,6 +403,24 @@ function makeGlowTexture() {
   const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
   grad.addColorStop(0, 'rgba(255,255,255,1)');
   grad.addColorStop(0.25, 'rgba(255,255,255,0.55)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// 中間透明、外緣發亮的光環
+function makeRimTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const g = canvas.getContext('2d');
+  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(255,255,255,0)');
+  grad.addColorStop(0.6, 'rgba(255,255,255,0.05)');
+  grad.addColorStop(0.76, 'rgba(255,255,255,0.95)');
+  grad.addColorStop(0.86, 'rgba(255,255,255,0.45)');
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);

@@ -3,7 +3,7 @@
 
 import { HexGrid } from './hexgrid.js';
 import { createRng } from './rng.js';
-import { findMatches, hasMatch } from './match.js';
+import { findMatches, findNearRings, hasMatch } from './match.js';
 import * as S from './score.js';
 
 export const MODES = ['classic', 'bomb'];
@@ -67,6 +67,11 @@ export class Game {
       }
     }
     return list;
+  }
+
+  // 差一顆就能做出星星／黑珍珠的地方（畫面上發光提示用）
+  nearRings() {
+    return findNearRings(this.grid, this.pieces);
   }
 
   // 把 cells 上的棋子沿順時針（或逆時針）移一格

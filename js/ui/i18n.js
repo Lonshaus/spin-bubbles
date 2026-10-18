@@ -63,7 +63,7 @@ const DICT = {
       <p><b>三顆互相相鄰（三角形）</b>的同色球會消除，直線三顆不算。連在一起的三角形會一起消除。</p>
       <p>球掉下來之後又形成配對就是<b>連鎖</b>，分數會加倍。</p>
       <h3>⭐ 星星</h3>
-      <p>讓 <b>6 顆同色球圍成一圈</b>，中間那顆會變成星星。指向星星可以旋轉它周圍的一圈。</p>
+      <p>讓 <b>6 顆同色球圍成一圈</b>，中間那顆會變成星星。指向星星可以旋轉它周圍的一圈。<br>只差一顆時，那 5 顆會發光，缺的位置會用需要的顏色框起來。</p>
       <h3>⚫ 黑珍珠</h3>
       <p>讓 <b>6 顆星星圍成一圈</b>，中間會變成黑珍珠，分數超高。指向黑珍珠可以用 Y 字形旋轉。</p>
       <h3>💣 炸彈模式</h3>
@@ -131,7 +131,7 @@ const DICT = {
       <p><b>Three touching bubbles of one color (a triangle)</b> pop. A straight line doesn't count. Connected triangles pop together.</p>
       <p>When falling bubbles form new matches you get a <b>chain</b> and a score multiplier.</p>
       <h3>⭐ Stars</h3>
-      <p>Surround a bubble with a <b>ring of 6 same-colored bubbles</b> and it becomes a star. Point at a star to spin the ring around it.</p>
+      <p>Surround a bubble with a <b>ring of 6 same-colored bubbles</b> and it becomes a star. Point at a star to spin the ring around it.<br>When you're one bubble short, the five glow and the empty spot is outlined in the color you need.</p>
       <h3>⚫ Black Pearls</h3>
       <p>Make a <b>ring of 6 stars</b> to create a black pearl, worth a huge bonus. Point at a pearl to spin in a Y shape.</p>
       <h3>💣 Bomb mode</h3>
@@ -199,7 +199,7 @@ const DICT = {
       <p><b>互いに接する同じ色の3つ（三角形）</b>で消えます。一直線の3つは消えません。つながった三角形はまとめて消えます。</p>
       <p>落ちてきたバブルでまたそろうと<b>連鎖</b>になり、スコアが倍増します。</p>
       <h3>⭐ スター</h3>
-      <p>あるバブルの周りを<b>同じ色の6つで囲む</b>と、中心がスターになります。スターを指すと周りの輪を回せます。</p>
+      <p>あるバブルの周りを<b>同じ色の6つで囲む</b>と、中心がスターになります。スターを指すと周りの輪を回せます。<br>あと1つのときは5つが光り、足りない場所が必要な色の枠で示されます。</p>
       <h3>⚫ ブラックパール</h3>
       <p><b>スター6つで輪</b>を作るとブラックパールに。超高得点です。パールを指すとY字型に回せます。</p>
       <h3>💣 ボムモード</h3>

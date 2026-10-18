@@ -109,9 +109,15 @@ function newBoard(options) {
   busy = false;
   game = new Game({ ...options, seed: (Math.random() * 2 ** 32) >>> 0 });
   board.build(game);
-  pivots = game.pivots();
+  settled();
   selected = null;
   clearHint();
+}
+
+// 盤面停下來之後：更新可旋轉的樞紐與「差一顆成環」的發光提示
+function settled() {
+  pivots = game.pivots();
+  board.setNear(game.nearRings());
 }
 
 function startDemo() {
@@ -145,9 +151,10 @@ async function spin(dir = spinDir) {
   const key = selected.key;
   const events = game.rotate(selected, dir);
   board.setHighlight(null);
+  board.setNear([]);
   await director.play(events);
   hud.setLevel(game);
-  pivots = game.pivots();
+  settled();
   busy = false;
   if (game.over) return finish();
   if (!touchMode && pointer) hover(pointer, true);
@@ -219,7 +226,7 @@ async function demoStep() {
   board.setHighlight(null);
   const events = game.rotate(move.pivot, move.dir);
   await director.play(events);
-  pivots = game.pivots();
+  settled();
   busy = false;
   if (game.over || game.level > 4) startDemo();
 }
@@ -418,7 +425,7 @@ window.spinBubbles = {
   setSpeed: (speed) => (tweens.speed = speed),
   refresh() {
     board.build(game);
-    pivots = game.pivots();
+    settled();
   },
   select: (key) => select(pivots.find((p) => p.key === key) ?? null),
 };

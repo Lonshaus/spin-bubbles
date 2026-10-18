@@ -1,10 +1,6 @@
 // three.js 場景：renderer、鏡頭、燈光、環境貼圖、後製光暈、背景泡泡
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const TILT = THREE.MathUtils.degToRad(15);
 const FOV = 30;
@@ -21,10 +17,9 @@ export class Stage {
     container.appendChild(this.renderer.domElement);
 
     this.scene = new THREE.Scene();
-    this.scene.background = makeBackground();
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    this.scene.environmentIntensity = 0.55;
+    this.scene.environmentIntensity = 0.5;
 
     const key = new THREE.DirectionalLight(0xffffff, 1.6);
     key.position.set(-6, 10, 14);
@@ -47,7 +42,6 @@ export class Stage {
     this.scene.add(this.bubbles);
 
     this.quality = 'high';
-    this.composer = null;
     this.resize();
     const observer = new ResizeObserver(() => this.resize());
     observer.observe(container);
@@ -58,13 +52,6 @@ export class Stage {
     this.quality = level;
     const dpr = window.devicePixelRatio || 1;
     this.renderer.setPixelRatio(level === 'high' ? Math.min(dpr, 2) : Math.min(dpr, 1.5));
-    if (level === 'high' && !this.composer) {
-      this.composer = new EffectComposer(this.renderer);
-      this.composer.addPass(new RenderPass(this.scene, this.camera));
-      this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.45, 0.93);
-      this.composer.addPass(this.bloom);
-      this.composer.addPass(new OutputPass());
-    }
     this.resize();
   }
 
@@ -78,8 +65,12 @@ export class Stage {
     const w = Math.max(1, this.container.clientWidth);
     const h = Math.max(1, this.container.clientHeight);
     this.renderer.setSize(w, h);
-    this.composer?.setPixelRatio(this.renderer.getPixelRatio());
-    this.composer?.setSize(w, h);
+    const aspect = w / h;
+    if (Math.abs(aspect - (this.bgAspect ?? 0)) > 0.05) {
+      this.scene.background?.dispose();
+      this.scene.background = makeBackground(aspect);
+      this.bgAspect = aspect;
+    }
 
     // canvas 鋪滿整個畫面，但盤面要置中在 area 裡：
     // 用一個以 area 中心為中心的虛擬畫框（高 hv）算投影，再用 setViewOffset 只畫 canvas 那一塊
@@ -133,22 +124,44 @@ export class Stage {
     this.shake = Math.min(2, Math.max(0, this.shake - dt * 2.5));
     this.placeCamera();
     this.bubbles.userData.update(dt);
-    if (this.quality === 'high' && this.composer) this.composer.render(dt);
-    else this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera);
   }
 }
 
-function makeBackground() {
+// 原版那種淺藍底加六角形花紋。依畫面比例重畫，花紋才不會被拉長。
+function makeBackground(aspect = 1) {
   const canvas = document.createElement('canvas');
-  canvas.width = 16;
-  canvas.height = 512;
+  canvas.width = 768;
+  canvas.height = Math.round(768 / aspect);
+  const { width: w, height: h } = canvas;
   const g = canvas.getContext('2d');
-  const grad = g.createLinearGradient(0, 0, 0, 512);
-  grad.addColorStop(0, '#1b1446');
-  grad.addColorStop(0.55, '#0d1b3d');
-  grad.addColorStop(1, '#06101f');
+  const grad = g.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#d9f0ff');
+  grad.addColorStop(0.5, '#a6d6fb');
+  grad.addColorStop(1, '#6fb4ec');
   g.fillStyle = grad;
-  g.fillRect(0, 0, 16, 512);
+  g.fillRect(0, 0, w, h);
+  const glow = g.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.max(w, h) * 0.6);
+  glow.addColorStop(0, 'rgba(255,255,255,0.45)');
+  glow.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = glow;
+  g.fillRect(0, 0, w, h);
+  const r = 34;
+  g.strokeStyle = 'rgba(255,255,255,0.35)';
+  g.lineWidth = 2;
+  for (let col = -1; col * r * 1.5 < w + r; col++) {
+    for (let row = -1; row * r * Math.sqrt(3) < h + r; row++) {
+      const cx = col * r * 1.5;
+      const cy = row * r * Math.sqrt(3) + (col & 1 ? (r * Math.sqrt(3)) / 2 : 0);
+      g.beginPath();
+      for (let k = 0; k < 6; k++) {
+        const a = (Math.PI / 3) * k;
+        g[k ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * (r - 3), cy + Math.sin(a) * (r - 3));
+      }
+      g.closePath();
+      g.stroke();
+    }
+  }
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
@@ -186,11 +199,10 @@ function makeBackgroundBubbles() {
   const mat = new THREE.PointsMaterial({
     size: 1.6,
     map: makeDotTexture(),
-    color: 0x6f8cff,
+    color: 0xffffff,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.45,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
   });
   const points = new THREE.Points(geo, mat);
   points.userData.update = (dt) => {

@@ -12,7 +12,9 @@ const DICT = {
     'mode.bomb.desc': '在倒數歸零前消掉炸彈',
     best: '最高分',
     score: '分數',
-    level: '關卡',
+    level: '等級',
+    goal: '剩餘目標',
+    menuButton: '選單',
     howto: '玩法說明',
     settings: '設定',
     language: '語言',
@@ -21,7 +23,7 @@ const DICT = {
     music: '背景音樂',
     quality: '畫質',
     'quality.auto': '自動',
-    'quality.high': '高（光暈特效）',
+    'quality.high': '高（高解析度）',
     'quality.low': '低（省電）',
     on: '開',
     off: '關',
@@ -56,12 +58,13 @@ const DICT = {
     howtoBody: `
       <h3>基本玩法</h3>
       <p>把游標移到三顆球的交會點，三顆球會被框起來，<b>按左鍵</b>就往目前的方向旋轉。<br>
-      旋轉方向用<b>一個鍵切換</b>：右鍵、空白鍵或右下角的 ↻ / ↺ 按鈕。框框中間的箭頭會顯示目前方向。<br>
-      手機上<b>點一下</b>選取、<b>再點一次</b>旋轉，右下角的大按鈕切換方向。</p>
+      旋轉方向用<b>一個鍵切換</b>：右鍵、空白鍵或左下角的 ↻ / ↺ 按鈕。框框中間的箭頭會顯示目前方向。<br>
+      手機上<b>點一下</b>選取、<b>再點一次</b>旋轉，左下角的大按鈕切換方向。</p>
       <p>一次旋轉最多轉三下，中途一出現配對就停；轉一圈都沒有配對就會回到原位。</p>
       <h3>配對</h3>
       <p><b>三顆互相相鄰（三角形）</b>的同色球會消除，直線三顆不算。連在一起的三角形會一起消除。</p>
       <p>球掉下來之後又形成配對就是<b>連鎖</b>，分數會加倍。</p>
+      <p>上方的<b>剩餘目標</b>是這一關還要配對幾次，歸零就過關；第 4、7、10 關會加入新顏色。</p>
       <h3>⭐ 星星</h3>
       <p>讓 <b>6 顆同色球圍成一圈</b>，中間那顆會變成星星。指向星星可以旋轉它周圍的一圈。<br>只差一顆時，那 5 顆會發光，缺的位置會用需要的顏色框起來。</p>
       <h3>⚫ 黑珍珠</h3>
@@ -81,6 +84,8 @@ const DICT = {
     best: 'Best',
     score: 'Score',
     level: 'Level',
+    goal: 'Combos to go',
+    menuButton: 'Menu',
     howto: 'How to play',
     settings: 'Settings',
     language: 'Language',
@@ -89,7 +94,7 @@ const DICT = {
     music: 'Music',
     quality: 'Graphics',
     'quality.auto': 'Auto',
-    'quality.high': 'High (bloom)',
+    'quality.high': 'High (sharper)',
     'quality.low': 'Low (battery saver)',
     on: 'On',
     off: 'Off',
@@ -124,12 +129,13 @@ const DICT = {
     howtoBody: `
       <h3>Basics</h3>
       <p>Point at a spot where three bubbles meet to select them, then <b>left click</b> to spin in the current direction.<br>
-      <b>One key switches direction</b>: right click, Space, or the ↻ / ↺ button at the bottom right. The arrow in the middle of the selection shows the current direction.<br>
-      On touch screens, <b>tap</b> to select and <b>tap again</b> to spin; the big button at the bottom right switches direction.</p>
+      <b>One key switches direction</b>: right click, Space, or the ↻ / ↺ button at the bottom left. The arrow in the middle of the selection shows the current direction.<br>
+      On touch screens, <b>tap</b> to select and <b>tap again</b> to spin; the big button at the bottom left switches direction.</p>
       <p>A spin turns up to three times and stops as soon as a match appears. If nothing matches, the bubbles return to where they started.</p>
       <h3>Matches</h3>
       <p><b>Three touching bubbles of one color (a triangle)</b> pop. A straight line doesn't count. Connected triangles pop together.</p>
       <p>When falling bubbles form new matches you get a <b>chain</b> and a score multiplier.</p>
+      <p><b>Combos to go</b> at the top counts the matches left in this level; reach zero to level up. New colors join at levels 4, 7 and 10.</p>
       <h3>⭐ Stars</h3>
       <p>Surround a bubble with a <b>ring of 6 same-colored bubbles</b> and it becomes a star. Point at a star to spin the ring around it.<br>When you're one bubble short, the five glow and the empty spot is outlined in the color you need.</p>
       <h3>⚫ Black Pearls</h3>
@@ -149,6 +155,8 @@ const DICT = {
     best: 'ベスト',
     score: 'スコア',
     level: 'レベル',
+    goal: '残り目標',
+    menuButton: 'メニュー',
     howto: '遊び方',
     settings: '設定',
     language: '言語',
@@ -157,7 +165,7 @@ const DICT = {
     music: 'BGM',
     quality: '画質',
     'quality.auto': '自動',
-    'quality.high': '高（ブルーム）',
+    'quality.high': '高（高解像度）',
     'quality.low': '低（省電力）',
     on: 'オン',
     off: 'オフ',
@@ -192,12 +200,13 @@ const DICT = {
     howtoBody: `
       <h3>基本</h3>
       <p>3つのバブルが接する点にカーソルを合わせると選択され、<b>左クリック</b>で今の向きに回転します。<br>
-      回転の向きは<b>ひとつのキーで切り替え</b>：右クリック、スペースキー、右下の ↻ / ↺ ボタン。選択枠の中央の矢印が今の向きです。<br>
-      スマホでは<b>タップ</b>で選択、<b>もう一度タップ</b>で回転。右下の大きなボタンで向きを切り替えます。</p>
+      回転の向きは<b>ひとつのキーで切り替え</b>：右クリック、スペースキー、左下の ↻ / ↺ ボタン。選択枠の中央の矢印が今の向きです。<br>
+      スマホでは<b>タップ</b>で選択、<b>もう一度タップ</b>で回転。左下の大きなボタンで向きを切り替えます。</p>
       <p>1回の操作で最大3回まで回り、そろった時点で止まります。そろわなければ元の位置に戻ります。</p>
       <h3>マッチ</h3>
       <p><b>互いに接する同じ色の3つ（三角形）</b>で消えます。一直線の3つは消えません。つながった三角形はまとめて消えます。</p>
       <p>落ちてきたバブルでまたそろうと<b>連鎖</b>になり、スコアが倍増します。</p>
+      <p>上の<b>残り目標</b>はこのレベルであと何回そろえればいいか。0 になればレベルアップ。レベル 4・7・10 で新しい色が加わります。</p>
       <h3>⭐ スター</h3>
       <p>あるバブルの周りを<b>同じ色の6つで囲む</b>と、中心がスターになります。スターを指すと周りの輪を回せます。<br>あと1つのときは5つが光り、足りない場所が必要な色の枠で示されます。</p>
       <h3>⚫ ブラックパール</h3>

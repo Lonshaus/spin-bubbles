@@ -81,6 +81,7 @@ export class Director {
     else if (e.flowers) this.hud.callout('star');
     else if (e.defused) this.hud.callout('defused');
     this.hud.setScore(e.score);
+    this.hud.setGoal(e.toGo);
     if (e.pearls) this.stage.shake = 0.5;
 
     await this.tweens.wait(e.transforms.length ? 0.45 : 0.3);
@@ -108,6 +109,7 @@ export class Director {
   async levelUp(e) {
     this.audio.levelUp();
     this.hud.levelUp(e.level, e.colors);
+    this.hud.setGoal(e.toGo);
     await this.tweens.wait(0.2);
   }
 

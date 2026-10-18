@@ -1,9 +1,9 @@
-// 盤面與棋子的 3D 物件：底座、泡泡球、星星、黑珍珠、炸彈、選取外框
+// 盤面與棋子的 3D 物件：底座、六角寶石、星星、黑珍珠、炸彈、選取外框
 import * as THREE from 'three';
 import { BALL_COLORS } from './palette.js';
 import { SQRT3 } from '../core/hexgrid.js';
 
-const BALL_RADIUS = 0.8;
+const GEM_TOP = 0.42; // 寶石正面（朝向鏡頭）的高度
 
 export class BoardView {
   constructor(stage) {
@@ -18,9 +18,10 @@ export class BoardView {
     const clip = [this.clip];
 
     this.geo = {
-      ball: new THREE.SphereGeometry(BALL_RADIUS, 40, 28),
+      gem: makeGemGeometry(),
+      pearl: new THREE.IcosahedronGeometry(0.82, 1),
       star: makeStarGeometry(),
-      band: new THREE.TorusGeometry(BALL_RADIUS * 0.99, 0.08, 10, 48),
+      band: new THREE.TorusGeometry(0.9, 0.08, 6, 6), // 六角形的金屬框
       fuse: new THREE.CylinderGeometry(0.07, 0.09, 0.32, 10),
       edge: new THREE.BoxGeometry(1, 0.13, 0.13),
     };
@@ -30,12 +31,13 @@ export class BoardView {
         (color) =>
           new THREE.MeshPhysicalMaterial({
             color,
-            roughness: 0.3,
+            flatShading: true, // 切面分明，才有寶石的閃光
+            roughness: 0.15,
             metalness: 0,
             clearcoat: 1,
-            clearcoatRoughness: 0.04,
+            clearcoatRoughness: 0.03,
             emissive: color,
-            emissiveIntensity: 0.04,
+            emissiveIntensity: 0.05,
             clippingPlanes: clip,
           }),
       ),
@@ -50,6 +52,7 @@ export class BoardView {
       }),
       pearl: new THREE.MeshPhysicalMaterial({
         color: 0x0c0c14,
+        flatShading: true,
         metalness: 0.4,
         roughness: 0.12,
         clearcoat: 1,
@@ -60,8 +63,8 @@ export class BoardView {
         clippingPlanes: clip,
       }),
       metal: new THREE.MeshStandardMaterial({ color: 0x2b2b33, metalness: 0.9, roughness: 0.3, clippingPlanes: clip }),
-      edge: new THREE.MeshBasicMaterial({ color: 0xfff3c4, toneMapped: false, transparent: true }),
-      hint: new THREE.MeshBasicMaterial({ color: 0x7ef9ff, toneMapped: false, transparent: true }),
+      edge: new THREE.MeshBasicMaterial({ color: 0x1d3a9e, toneMapped: false, transparent: true }), // 淺色盤面上用深藍才看得清楚
+      hint: new THREE.MeshBasicMaterial({ color: 0xff3d9a, toneMapped: false, transparent: true }),
     };
     this.glowTexture = makeGlowTexture();
     this.rimTexture = makeRimTexture();
@@ -111,14 +114,11 @@ export class BoardView {
     let label = null;
 
     if (piece.kind === 'ball' || piece.kind === 'bomb') {
-      body.add(new THREE.Mesh(this.geo.ball, this.mat.balls[piece.color]));
+      body.add(new THREE.Mesh(this.geo.gem, this.mat.balls[piece.color]));
     }
     if (piece.kind === 'bomb') {
       const band = new THREE.Mesh(this.geo.band, this.mat.metal);
-      band.rotation.x = Math.PI / 2;
-      band.scale.set(1, 1, 1.4);
-      const band2 = band.clone();
-      band2.rotation.set(0, 0, 0);
+      band.position.z = 0.1;
       const fuse = new THREE.Mesh(this.geo.fuse, this.mat.metal);
       fuse.position.set(0.25, 0.78, 0.1);
       fuse.rotation.z = -0.35;
@@ -129,8 +129,8 @@ export class BoardView {
       spark.scale.setScalar(0.5);
       spark.userData.spark = true;
       label = makeLabel(this.clip);
-      label.sprite.position.set(0, 0, BALL_RADIUS + 0.12);
-      body.add(band, band2, fuse, spark, label.sprite);
+      label.sprite.position.set(0, 0, GEM_TOP + 0.2);
+      body.add(band, fuse, spark, label.sprite);
       label.set(piece.timer);
     }
     if (piece.kind === 'star') {
@@ -139,8 +139,7 @@ export class BoardView {
     }
     if (piece.kind === 'pearl') {
       const glow = this.makeGlow(0xb48cff, 3.2, 1);
-      const pearl = new THREE.Mesh(this.geo.ball, this.mat.pearl);
-      pearl.scale.setScalar(1.05);
+      const pearl = new THREE.Mesh(this.geo.pearl, this.mat.pearl);
       body.add(glow, pearl);
     }
 
@@ -218,14 +217,13 @@ export class BoardView {
     this.near.clear();
     for (const n of list) {
       const color = n.type === 'pearl' ? 0xfff0b0 : BALL_COLORS[n.color];
-      const rimColor = new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.35);
       for (const cell of n.cells) {
         // 疊在球前面的一圈光環，只亮在球的外緣
         const rim = new THREE.Sprite(
-          new THREE.SpriteMaterial({ map: this.rimTexture, color: rimColor, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }),
+          new THREE.SpriteMaterial({ map: this.rimTexture, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }),
         );
         // 放在球心深度、不做深度測試，才不會因為鏡頭傾斜而跟球錯位
-        rim.scale.setScalar(2.1);
+        rim.scale.setScalar(2.6);
         rim.renderOrder = 5;
         this.cellPos(cell, rim.position);
         this.near.add(rim);
@@ -359,12 +357,12 @@ function makeBase(grid) {
   };
   const slots = new THREE.InstancedMesh(
     hex(0.93, 0.3),
-    new THREE.MeshStandardMaterial({ color: 0x131c3d, metalness: 0.3, roughness: 0.35 }),
+    new THREE.MeshStandardMaterial({ color: 0xe6f3ff, metalness: 0, roughness: 0.45 }),
     grid.size,
   );
   const frame = new THREE.InstancedMesh(
     hex(1.22, 0.4),
-    new THREE.MeshStandardMaterial({ color: 0x3a4fa8, metalness: 0.75, roughness: 0.28 }),
+    new THREE.MeshStandardMaterial({ color: 0x3f7fd0, metalness: 0.35, roughness: 0.3 }),
     grid.size,
   );
   const m = new THREE.Matrix4();
@@ -380,11 +378,28 @@ function makeBase(grid) {
   return group;
 }
 
+// 平頂六角寶石：底部斜面 → 腰 → 兩層冠部切面 → 正面平台，用 6 段 Lathe 轉出六角形
+function makeGemGeometry() {
+  const profile = [
+    [0, -0.3],
+    [0.78, -0.22],
+    [0.92, -0.02],
+    [0.92, 0.08],
+    [0.8, 0.26],
+    [0.56, GEM_TOP],
+    [0, GEM_TOP],
+  ].map(([r, y]) => new THREE.Vector2(r, y));
+  const geo = new THREE.LatheGeometry(profile, 6, Math.PI / 2);
+  geo.rotateX(Math.PI / 2); // Lathe 的軸是 y，轉成朝向鏡頭的 z
+  geo.computeVertexNormals();
+  return geo;
+}
+
 function makeStarGeometry() {
   const shape = new THREE.Shape();
-  const points = 5;
+  const points = 6; // 原版的星星是六芒星
   for (let k = 0; k < points * 2; k++) {
-    const r = k % 2 ? 0.4 : 0.9;
+    const r = k % 2 ? 0.42 : 0.88;
     const a = Math.PI / 2 + (k * Math.PI) / points;
     const x = Math.cos(a) * r;
     const y = Math.sin(a) * r;
@@ -392,7 +407,7 @@ function makeStarGeometry() {
     else shape.moveTo(x, y);
   }
   const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.08, bevelSegments: 3 });
-  // 只把厚度置中；五角星的外框不對稱，整個 center() 會讓旋轉中心偏掉
+  // 只把厚度置中，旋轉中心維持在星星正中央
   geo.computeBoundingBox();
   geo.translate(0, 0, -(geo.boundingBox.min.z + geo.boundingBox.max.z) / 2);
   return geo;
@@ -413,19 +428,26 @@ function makeGlowTexture() {
   return tex;
 }
 
-// 中間透明、外緣發亮的光環
+// 中間透明、外緣發亮的六角光框
 function makeRimTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 128;
   const g = canvas.getContext('2d');
-  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, 'rgba(255,255,255,0)');
-  grad.addColorStop(0.6, 'rgba(255,255,255,0.05)');
-  grad.addColorStop(0.76, 'rgba(255,255,255,0.95)');
-  grad.addColorStop(0.86, 'rgba(255,255,255,0.45)');
-  grad.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 128, 128);
+  // 平頂六角形的發光外框，跟寶石外形一致
+  g.beginPath();
+  for (let k = 0; k < 6; k++) {
+    const a = (Math.PI / 3) * k;
+    g[k ? 'lineTo' : 'moveTo'](64 + Math.cos(a) * 46, 64 + Math.sin(a) * 46);
+  }
+  g.closePath();
+  g.strokeStyle = 'rgba(255,255,255,0.95)';
+  g.shadowColor = '#fff';
+  g.lineJoin = 'round';
+  for (const [width, blur] of [[6, 12], [3, 4]]) {
+    g.lineWidth = width;
+    g.shadowBlur = blur;
+    g.stroke();
+  }
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;

@@ -17,13 +17,13 @@ export class Game {
     this.nextId = 1;
     this.score = 0;
     this.level = 1;
-    this.levelProgress = 0;
+    this.levelProgress = 0; // 這一關已完成的配對次數（原版的「剩餘目標」）
     this.colors = S.colorsForLevel(1);
     this.moves = 0;
     this.bombCooldown = 0;
     this.over = false;
     this.overReason = null;
-    this.stats = { stars: 0, pearls: 0, bombsDefused: 0, bestChain: 0, cleared: 0 };
+    this.stats = { stars: 0, pearls: 0, bombsDefused: 0, bestChain: 0, cleared: 0, combos: 0 };
     this.pieces = new Array(this.grid.size).fill(null);
     this.generate();
   }
@@ -154,7 +154,10 @@ export class Game {
       }
 
       this.score += points;
-      this.levelProgress += removed.size;
+      // 每個群組、花環、珍珠環各算一次配對
+      const combos = m.clusters.length + m.flowers.length + m.pearls.length;
+      this.levelProgress += combos;
+      this.stats.combos += combos;
       this.stats.cleared += removed.size;
       this.stats.stars += [...becomes.values()].filter((k) => k === 'star').length;
       this.stats.pearls += m.pearls.length;
@@ -171,6 +174,7 @@ export class Game {
         flowers: m.flowers.length,
         pearls: m.pearls.length,
         defused,
+        toGo: this.combosToGo,
       });
       events.push(this.collapse());
     }
@@ -222,7 +226,7 @@ export class Game {
       this.levelProgress -= S.levelGoal(this.level);
       this.level++;
       this.colors = S.colorsForLevel(this.level);
-      events.push({ type: 'levelUp', level: this.level, colors: this.colors });
+      events.push({ type: 'levelUp', level: this.level, colors: this.colors, toGo: this.combosToGo });
     }
   }
 
@@ -247,6 +251,10 @@ export class Game {
 
   get levelGoal() {
     return S.levelGoal(this.level);
+  }
+
+  get combosToGo() {
+    return Math.max(0, this.levelGoal - this.levelProgress);
   }
 
   // 找出一步可以產生配對的旋轉（同時用來判斷是否無步可走、以及提示）

@@ -81,7 +81,6 @@ function showChrome() {
   const inGame = state !== 'title';
   $('hud').classList.toggle('hidden', !inGame);
   $('controls').classList.toggle('hidden', !inGame);
-  $('controls-tip').textContent = t(touchMode ? 'touch.tip' : 'mouse.tip');
 }
 
 // ---------- 旋轉方向 ----------
@@ -136,7 +135,8 @@ function startGame(m) {
   audio.muted = false;
   audio.unlock();
   newBoard({ mode });
-  hud.reset(game, store.loadBest(mode));
+  hud.reset(game);
+  hud.callout('levelup', { n: 1 }, t(touchMode ? 'touch.tip' : 'mouse.tip'));
   showChrome();
   setScreens([]);
 }
@@ -166,7 +166,6 @@ function finish() {
   const best = store.loadBest(mode);
   const isBest = game.score > best;
   if (isBest) store.saveBest(mode, game.score);
-  hud.setBest(Math.max(best, game.score));
   $('over-reason').textContent = t(`reason.${game.overReason}`);
   $('over-score').textContent = game.score.toLocaleString();
   $('over-best').classList.toggle('hidden', !isBest);

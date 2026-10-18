@@ -13,11 +13,10 @@ export class Hud {
     this.calloutEl = $('callout');
   }
 
-  reset(game, best) {
+  reset(game) {
     this.shown = this.target = game.score;
     this.colors = game.colors;
     $('score').textContent = game.score.toLocaleString();
-    this.setBest(best);
     this.setLevel(game);
   }
 
@@ -25,13 +24,14 @@ export class Hud {
     this.target = score;
   }
 
-  setBest(best) {
-    $('best').textContent = best.toLocaleString();
-  }
-
   setLevel(game) {
     $('level').textContent = game.level;
-    $('progress').style.width = `${Math.min(100, (game.levelProgress / game.levelGoal) * 100)}%`;
+    this.setGoal(game.combosToGo);
+  }
+
+  // 原版的「剩餘目標」：這一關還要配對幾次
+  setGoal(n) {
+    $('goal').textContent = n;
   }
 
   // 在 3D 位置上方冒出分數

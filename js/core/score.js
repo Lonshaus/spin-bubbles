@@ -7,12 +7,12 @@ export const BOMB_POINTS = 50;
 // 群組大小 n：3 → 15、4 → 40、5 → 75 …
 export const clusterPoints = (n) => 5 * n * (n - 2);
 
-// 顏色越多越難找到配對；8 色以上經典模式才會真的走到無步可走
+// 原版開局就是 6 色；之後逐關加色，8 色以上經典模式才會真的走到無步可走
 export const MAX_COLORS = 9;
-export const colorsForLevel = (level) => (level < 3 ? 5 : level < 5 ? 6 : level < 8 ? 7 : level < 12 ? 8 : 9);
+export const colorsForLevel = (level) => (level < 4 ? 6 : level < 7 ? 7 : level < 10 ? 8 : 9);
 
-// 升到下一關需要消除的球數
-export const levelGoal = (level) => 40 + level * 10;
+// 每關要完成的配對次數（原版 HUD 的「剩餘目標」）
+export const levelGoal = (level) => 25 + level * 5;
 
 // 炸彈模式
 export const BOMB_FIRST_MOVE = 3;

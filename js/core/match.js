@@ -1,0 +1,79 @@
+// 配對偵測：
+//  - 群組：三顆互相相鄰（三角形）的同色球，重疊的三角形合併成一個群組；直線三顆不算
+//  - 花環：某格周圍 6 顆同色 → 中心變星星
+//  - 珍珠環：某格周圍 6 顆星星 → 中心變黑珍珠
+
+// 可參與顏色配對的棋子回傳顏色，其餘（星星、珍珠、空格）回傳 -1
+export function matchColor(piece) {
+  return piece && (piece.kind === 'ball' || piece.kind === 'bomb') ? piece.color : -1;
+}
+
+function sameColorTriangle(pieces, cells) {
+  const color = matchColor(pieces[cells[0]]);
+  return color >= 0 && matchColor(pieces[cells[1]]) === color && matchColor(pieces[cells[2]]) === color;
+}
+
+function fullRing(grid, i) {
+  const ring = grid.neighbors[i];
+  return ring.includes(-1) ? null : ring;
+}
+
+function isFlower(grid, pieces, i) {
+  const ring = fullRing(grid, i);
+  if (!ring || !pieces[i] || pieces[i].kind === 'pearl') return false;
+  const color = matchColor(pieces[ring[0]]);
+  return color >= 0 && ring.every((j) => matchColor(pieces[j]) === color);
+}
+
+function isPearlRing(grid, pieces, i) {
+  const ring = fullRing(grid, i);
+  if (!ring || !pieces[i] || pieces[i].kind === 'pearl') return false;
+  return ring.every((j) => pieces[j]?.kind === 'star');
+}
+
+export function findMatches(grid, pieces) {
+  const parent = new Map();
+  const find = (a) => {
+    while (parent.get(a) !== a) {
+      parent.set(a, parent.get(parent.get(a)));
+      a = parent.get(a);
+    }
+    return a;
+  };
+  const union = (a, b) => {
+    for (const x of [a, b]) if (!parent.has(x)) parent.set(x, x);
+    parent.set(find(a), find(b));
+  };
+
+  for (const t of grid.triangles) {
+    if (!sameColorTriangle(pieces, t.cells)) continue;
+    union(t.cells[0], t.cells[1]);
+    union(t.cells[0], t.cells[2]);
+  }
+
+  const groups = new Map();
+  for (const i of parent.keys()) {
+    const root = find(i);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(i);
+  }
+  const clusters = [...groups.values()].map((cells) => ({ cells, color: matchColor(pieces[cells[0]]) }));
+
+  const flowers = [];
+  const pearls = [];
+  for (let i = 0; i < grid.size; i++) {
+    if (isFlower(grid, pieces, i)) flowers.push({ center: i, ring: grid.neighbors[i], color: matchColor(pieces[grid.neighbors[i][0]]) });
+    if (isPearlRing(grid, pieces, i)) pearls.push({ center: i, ring: grid.neighbors[i] });
+  }
+
+  return { clusters, flowers, pearls, any: clusters.length + flowers.length + pearls.length > 0 };
+}
+
+// 只判斷有沒有配對（找可走步時大量呼叫，提早結束）
+export function hasMatch(grid, pieces) {
+  for (const t of grid.triangles) if (sameColorTriangle(pieces, t.cells)) return true;
+  for (let i = 0; i < grid.size; i++) {
+    if (isFlower(grid, pieces, i) || isPearlRing(grid, pieces, i)) return true;
+  }
+  return false;
+}

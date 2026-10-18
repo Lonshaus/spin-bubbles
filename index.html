@@ -6,10 +6,13 @@
     <meta name="theme-color" content="#a6d6fb" />
     <meta name="description" content="向 MSN 經典遊戲致敬的 3D 旋轉泡泡球，直接在瀏覽器裡玩。" />
     <title>旋轉泡泡球</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <!-- ?v= 讓 Safari 這類會死守舊 favicon 的瀏覽器重新抓；Safari 用 PNG，其他瀏覽器用 SVG -->
+    <link rel="icon" href="icons/favicon-32.png?v=2" type="image/png" sizes="32x32" />
+    <link rel="icon" href="icons/favicon-96.png?v=2" type="image/png" sizes="96x96" />
+    <link rel="icon" href="favicon.svg?v=2" type="image/svg+xml" />
     <link rel="manifest" href="manifest.webmanifest" />
     <!-- 加到 iPhone 主畫面時用的圖示與全螢幕設定 -->
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="旋轉泡泡球" />

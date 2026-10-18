@@ -380,6 +380,30 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// ---------- PWA：離線快取與安裝 ----------
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {
+    // 不支援或被封鎖時照常可以玩，只是不能離線
+  });
+}
+
+// Chrome / Edge / Android 會先發這個事件，按下按鈕時才跳出安裝視窗（iPhone 要用分享 → 加入主畫面）
+let installPrompt = null;
+addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  $('btn-install').classList.remove('hidden');
+});
+$('btn-install').addEventListener('click', async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  $('btn-install').classList.add('hidden');
+});
+addEventListener('appinstalled', () => $('btn-install').classList.add('hidden'));
+
 // ---------- 主迴圈 ----------
 
 let last = performance.now();

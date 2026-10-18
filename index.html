@@ -7,6 +7,13 @@
     <meta name="description" content="向 MSN 經典遊戲致敬的 3D 旋轉泡泡球，直接在瀏覽器裡玩。" />
     <title>旋轉泡泡球</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <!-- 加到 iPhone 主畫面時用的圖示與全螢幕設定 -->
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="旋轉泡泡球" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="stylesheet" href="css/style.css" />
     <script type="importmap">
       {
@@ -70,6 +77,8 @@
             <button class="secondary" data-open="howto" data-i18n="howto"></button>
             <button class="secondary" data-open="settings" data-i18n="settings"></button>
           </div>
+          <!-- 瀏覽器支援安裝時才顯示 -->
+          <button id="btn-install" class="secondary hidden" data-i18n="install"></button>
         </div>
       </section>
 

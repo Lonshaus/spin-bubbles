@@ -13,6 +13,13 @@
 
 介面支援繁體中文、英文、日文；音效與背景音樂都是 Web Audio 即時合成。
 
+## 安裝成 App（PWA）
+
+- **Android / 桌機 Chrome、Edge**：標題畫面會出現「安裝到主畫面」按鈕，或用瀏覽器選單的「安裝應用程式」。
+- **iPhone / iPad**：用 Safari 開，按分享 → 加入主畫面。
+
+裝好之後可以離線玩。`sw.js` 採「網路優先」：有網路時一律抓最新版，離線才用快取；新增遊戲檔案時要加進 `sw.js` 的 `CORE` 清單（`npm test` 會檢查）。
+
 ## 部署到 GitHub Pages
 
 Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。之後每次推到 `master`，`.github/workflows/pages.yml` 會先跑單元測試，通過才部署。

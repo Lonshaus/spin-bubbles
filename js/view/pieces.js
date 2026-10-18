@@ -21,8 +21,20 @@ export class BoardView {
       gem: makeGemGeometry(),
       pearl: new THREE.IcosahedronGeometry(0.82, 1),
       star: makeStarGeometry(),
-      band: new THREE.TorusGeometry(0.9, 0.08, 6, 6), // 六角形的金屬框
-      fuse: new THREE.CylinderGeometry(0.07, 0.09, 0.32, 10),
+      // 炸彈：黑色圓球＋金屬蓋＋彎曲的引信
+      bomb: new THREE.SphereGeometry(0.52, 32, 20),
+      cap: new THREE.CylinderGeometry(0.15, 0.18, 0.16, 16),
+      fuse: new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0.06, 0.16, 0.02),
+          new THREE.Vector3(0.2, 0.26, 0.06),
+          new THREE.Vector3(0.34, 0.24, 0.1),
+        ]),
+        16,
+        0.04,
+        8,
+      ),
       edge: new THREE.BoxGeometry(1, 0.13, 0.13),
     };
 
@@ -62,7 +74,8 @@ export class BoardView {
         iridescenceThicknessRange: [200, 700],
         clippingPlanes: clip,
       }),
-      metal: new THREE.MeshStandardMaterial({ color: 0x2b2b33, metalness: 0.9, roughness: 0.3, clippingPlanes: clip }),
+      metal: new THREE.MeshStandardMaterial({ color: 0x9aa3b2, metalness: 0.9, roughness: 0.3, clippingPlanes: clip }),
+      fuse: new THREE.MeshStandardMaterial({ color: 0xc9a46a, roughness: 0.8, clippingPlanes: clip }),
       edge: new THREE.MeshBasicMaterial({ color: 0x1d3a9e, toneMapped: false, transparent: true }), // 淺色盤面上用深藍才看得清楚
       hint: new THREE.MeshBasicMaterial({ color: 0xff3d9a, toneMapped: false, transparent: true }),
     };
@@ -117,20 +130,39 @@ export class BoardView {
       body.add(new THREE.Mesh(this.geo.gem, this.mat.balls[piece.color]));
     }
     if (piece.kind === 'bomb') {
-      const band = new THREE.Mesh(this.geo.band, this.mat.metal);
-      band.position.z = 0.1;
-      const fuse = new THREE.Mesh(this.geo.fuse, this.mat.metal);
-      fuse.position.set(0.25, 0.78, 0.1);
-      fuse.rotation.z = -0.35;
+      // 底下的寶石標示顏色，上面坐著一顆卡通炸彈
+      const bomb = new THREE.Group();
+      bomb.position.set(0, -0.1, GEM_TOP + 0.36);
+      bomb.scale.setScalar(1.25);
+      // 每顆炸彈自己一份材質，倒數快到時才能單獨閃紅
+      const shell = new THREE.MeshPhysicalMaterial({
+        color: 0x1b1d26,
+        metalness: 0.35,
+        roughness: 0.22,
+        clearcoat: 1,
+        clearcoatRoughness: 0.05,
+        emissive: 0xff2a00,
+        emissiveIntensity: 0,
+        clippingPlanes: [this.clip],
+      });
+      const ball = new THREE.Mesh(this.geo.bomb, shell);
+      const cap = new THREE.Mesh(this.geo.cap, this.mat.metal);
+      cap.position.set(0.2, 0.46, 0.05);
+      cap.rotation.z = -0.45;
+      const fuse = new THREE.Mesh(this.geo.fuse, this.mat.fuse);
+      fuse.position.set(0.24, 0.53, 0.06);
       const spark = new THREE.Sprite(
-        new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xffa040, toneMapped: false, transparent: true, depthWrite: false, clippingPlanes: [this.clip] }),
+        new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xffb030, toneMapped: false, transparent: true, depthWrite: false, clippingPlanes: [this.clip] }),
       );
-      spark.position.set(0.33, 0.98, 0.1);
-      spark.scale.setScalar(0.5);
+      spark.position.set(0.6, 0.79, 0.16);
       spark.userData.spark = true;
       label = makeLabel(this.clip);
-      label.sprite.position.set(0, 0, GEM_TOP + 0.2);
-      body.add(band, fuse, spark, label.sprite);
+      label.sprite.position.set(0, -0.04, 0.56);
+      label.sprite.scale.setScalar(0.62);
+      bomb.add(ball, cap, fuse, spark, label.sprite);
+      body.add(bomb);
+      body.userData.shell = shell;
+      body.userData.spark = spark;
       label.set(piece.timer);
     }
     if (piece.kind === 'star') {
@@ -174,6 +206,7 @@ export class BoardView {
     if (!e) return;
     this.group.remove(e.group);
     e.label?.dispose();
+    e.body.userData.shell?.dispose();
     this.entries.delete(id);
   }
 
@@ -283,10 +316,13 @@ export class BoardView {
       }
       if (kind === 'pearl') e.body.children[1].rotation.y = this.time * 0.8;
       if (kind === 'bomb') {
-        const spark = e.body.children.find((c) => c.userData.spark);
-        spark.scale.setScalar(0.4 + 0.2 * Math.sin(this.time * 25 + e.phase));
+        const { spark, shell } = e.body.userData;
+        spark.scale.setScalar(0.35 + 0.18 * Math.sin(this.time * 25 + e.phase) + 0.08 * Math.sin(this.time * 61));
+        // 剩 3 步以內：炸彈本體閃紅、數字變紅
         const danger = e.piece.timer <= 3;
-        e.label.sprite.material.color.setHex(danger && Math.sin(this.time * 12) > 0 ? 0xff5050 : 0xffffff);
+        const blink = danger && Math.sin(this.time * 12) > 0;
+        shell.emissiveIntensity = danger ? (blink ? 0.7 : 0.15) : 0;
+        e.label.sprite.material.color.setHex(blink ? 0xff5050 : 0xffffff);
       }
     }
   }

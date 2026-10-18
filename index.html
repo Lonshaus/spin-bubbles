@@ -77,8 +77,8 @@
             <button class="secondary" data-open="howto" data-i18n="howto"></button>
             <button class="secondary" data-open="settings" data-i18n="settings"></button>
           </div>
-          <!-- 瀏覽器支援安裝時才顯示 -->
-          <button id="btn-install" class="secondary hidden" data-i18n="install"></button>
+          <!-- 已經用 App 開啟時隱藏 -->
+          <button id="btn-install" class="secondary" data-i18n="install"></button>
         </div>
       </section>
 
@@ -86,6 +86,18 @@
         <div class="panel scroll">
           <h2 data-i18n="howto"></h2>
           <div class="howto" data-i18n-html="howtoBody"></div>
+          <div class="howto">
+            <h3 data-i18n="installTitle"></h3>
+            <div data-i18n-html="installBody"></div>
+          </div>
+          <button data-close data-i18n="close"></button>
+        </div>
+      </section>
+
+      <section id="screen-install" class="screen hidden">
+        <div class="panel scroll">
+          <h2 data-i18n="installTitle"></h2>
+          <div class="howto" data-i18n-html="installBody"></div>
           <button data-close data-i18n="close"></button>
         </div>
       </section>

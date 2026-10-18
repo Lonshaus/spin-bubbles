@@ -16,6 +16,15 @@ const DICT = {
     goal: '剩餘目標',
     menuButton: '選單',
     install: '📲 安裝到主畫面',
+    installTitle: '📲 安裝到主畫面',
+    installBody: `
+      <p>安裝之後會有自己的圖示、全螢幕開啟，<b>沒有網路也能玩</b>。有網路時打開會自動更新成最新版。</p>
+      <h3>iPhone / iPad</h3>
+      <p>用 <b>Safari</b> 開啟這個網頁 → 點下方的<b>分享</b>按鈕（方框加向上箭頭）→ 往下滑，選<b>「加入主畫面」</b>→ 點右上角<b>「加入」</b>。</p>
+      <h3>Android</h3>
+      <p>用 <b>Chrome</b> 開啟 → 點標題畫面的「📲 安裝到主畫面」按鈕。沒有跳出安裝視窗的話，點右上角 <b>⋮</b> → <b>「安裝應用程式」</b>或<b>「加到主畫面」</b>。</p>
+      <h3>電腦（Chrome / Edge）</h3>
+      <p>點網址列右側的<b>安裝圖示</b>，或從瀏覽器選單選<b>「安裝」</b>。安裝後會出現在桌面與開始選單。</p>`,
     howto: '玩法說明',
     settings: '設定',
     language: '語言',
@@ -90,6 +99,15 @@ const DICT = {
     goal: 'Combos to go',
     menuButton: 'Menu',
     install: '📲 Install app',
+    installTitle: '📲 Install the app',
+    installBody: `
+      <p>Once installed it gets its own icon, opens full screen and <b>works offline</b>. When you're online it updates itself automatically.</p>
+      <h3>iPhone / iPad</h3>
+      <p>Open this page in <b>Safari</b> → tap the <b>Share</b> button (square with an up arrow) → scroll down and choose <b>“Add to Home Screen”</b> → tap <b>“Add”</b>.</p>
+      <h3>Android</h3>
+      <p>Open it in <b>Chrome</b> → tap “📲 Install app” on the title screen. If no install prompt appears, tap <b>⋮</b> at the top right → <b>“Install app”</b> or <b>“Add to Home screen”</b>.</p>
+      <h3>Computer (Chrome / Edge)</h3>
+      <p>Click the <b>install icon</b> at the right end of the address bar, or choose <b>“Install”</b> from the browser menu.</p>`,
     howto: 'How to play',
     settings: 'Settings',
     language: 'Language',
@@ -164,6 +182,15 @@ const DICT = {
     goal: '残り目標',
     menuButton: 'メニュー',
     install: '📲 ホーム画面に追加',
+    installTitle: '📲 ホーム画面に追加',
+    installBody: `
+      <p>追加すると専用のアイコンができ、全画面で起動し、<b>オフラインでも遊べます</b>。オンラインのときは自動で最新版になります。</p>
+      <h3>iPhone / iPad</h3>
+      <p><b>Safari</b> でこのページを開く → 下の<b>共有</b>ボタン（四角に上向き矢印）→ 下にスクロールして<b>「ホーム画面に追加」</b>→ 右上の<b>「追加」</b>。</p>
+      <h3>Android</h3>
+      <p><b>Chrome</b> で開く → タイトル画面の「📲 ホーム画面に追加」ボタン。インストール画面が出ないときは右上の <b>⋮</b> →<b>「アプリをインストール」</b>または<b>「ホーム画面に追加」</b>。</p>
+      <h3>パソコン（Chrome / Edge）</h3>
+      <p>アドレスバー右側の<b>インストールアイコン</b>をクリック、またはブラウザのメニューから<b>「インストール」</b>を選びます。</p>`,
     howto: '遊び方',
     settings: '設定',
     language: '言語',

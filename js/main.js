@@ -69,7 +69,7 @@ function changeSetting(key, value) {
 
 function setScreens(list) {
   screens = list;
-  for (const name of ['title', 'howto', 'settings', 'pause', 'over']) {
+  for (const name of ['title', 'howto', 'install', 'settings', 'pause', 'over']) {
     $(`screen-${name}`).classList.toggle('hidden', screens.at(-1) !== name);
   }
 }
@@ -342,7 +342,7 @@ for (const btn of document.querySelectorAll('[data-open]')) btn.addEventListener
 for (const btn of document.querySelectorAll('[data-close]')) btn.addEventListener('click', closeScreen);
 
 // 點選單外面（半透明背景）也能關閉：暫停 → 繼續，說明／設定 → 返回上一層
-for (const name of ['pause', 'howto', 'settings']) {
+for (const name of ['pause', 'howto', 'install', 'settings']) {
   $(`screen-${name}`).addEventListener('click', (e) => {
     if (e.target !== e.currentTarget) return;
     if (name === 'pause') resume();
@@ -390,20 +390,22 @@ if ('serviceWorker' in navigator) {
 }
 
 // Chrome / Edge / Android 會先發這個事件，按下按鈕時才跳出安裝視窗（iPhone 要用分享 → 加入主畫面）
+// 能直接安裝就跳出安裝視窗，不行（例如 iPhone）就打開安裝教學
 let installPrompt = null;
+const hideInstall = () => $('btn-install').classList.add('hidden');
+if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) hideInstall();
 addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   installPrompt = e;
-  $('btn-install').classList.remove('hidden');
 });
 $('btn-install').addEventListener('click', async () => {
-  if (!installPrompt) return;
+  if (!installPrompt) return openScreen('install');
   installPrompt.prompt();
-  await installPrompt.userChoice;
+  const { outcome } = await installPrompt.userChoice;
   installPrompt = null;
-  $('btn-install').classList.add('hidden');
+  if (outcome === 'accepted') hideInstall();
 });
-addEventListener('appinstalled', () => $('btn-install').classList.add('hidden'));
+addEventListener('appinstalled', hideInstall);
 
 // ---------- 主迴圈 ----------
 

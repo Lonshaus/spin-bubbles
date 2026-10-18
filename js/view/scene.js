@@ -21,12 +21,14 @@ export class Stage {
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environmentIntensity = 0.5;
 
-    const key = new THREE.DirectionalLight(0xffffff, 1.6);
-    key.position.set(-6, 10, 14);
-    this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0x88aaff, 0.8);
-    rim.position.set(8, -6, 6);
-    this.scene.add(rim);
+    // 主光與補光會緩慢繞著盤面轉，寶石切面的高光跟著流動（見 render）
+    this.key = new THREE.DirectionalLight(0xffffff, 1.6);
+    this.key.position.set(-6, 10, 14);
+    this.scene.add(this.key);
+    this.rim = new THREE.DirectionalLight(0x88aaff, 0.8);
+    this.rim.position.set(8, -6, 6);
+    this.scene.add(this.rim);
+    this.lightTime = 0;
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 
     this.camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 200);
@@ -120,6 +122,10 @@ export class Stage {
   }
 
   render(dt) {
+    this.lightTime += dt;
+    const a = this.lightTime * 0.35;
+    this.key.position.set(Math.cos(a) * 11, 6 + Math.sin(a) * 7, 14);
+    this.rim.position.set(-Math.cos(a * 0.8) * 9, -5 - Math.sin(a * 0.8) * 4, 6);
     this.parallax.lerp(this.parallaxGoal, 1 - Math.exp(-dt * 3));
     this.shake = Math.min(2, Math.max(0, this.shake - dt * 2.5));
     this.placeCamera();

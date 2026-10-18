@@ -19,7 +19,7 @@ function write(key, value) {
   }
 }
 
-const DEFAULT_SETTINGS = { lang: 'auto', sfx: true, music: true, quality: 'auto', dir: 'cw' };
+const DEFAULT_SETTINGS = { lang: 'auto', sfx: true, music: true, quality: 'auto', dir: 'cw', pearlWin: true, classicBombs: false };
 
 export const loadSettings = () => ({ ...DEFAULT_SETTINGS, ...read('settings', {}) });
 export const saveSettings = (settings) => write('settings', settings);

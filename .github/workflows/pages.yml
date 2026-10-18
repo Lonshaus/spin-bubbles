@@ -36,6 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
+      # 把 __BUILD__ 換成 commit 編號前 7 碼：檔案網址與離線快取名稱每次部署都不同，瀏覽器不會卡在舊版
+      - name: Stamp build version
+        run: sed -i "s/__BUILD__/${GITHUB_SHA::7}/g" index.html sw.js
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .

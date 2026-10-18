@@ -3,14 +3,21 @@
 
 import { HexGrid } from './hexgrid.js';
 import { createRng } from './rng.js';
-import { STAR, findMatches, findNearRings, hasMatch } from './match.js';
+import { PEARL, STAR, findMatches, findNearRings, hasMatch } from './match.js';
 import * as S from './score.js';
 
 export const MODES = ['classic', 'bomb'];
 
+const clusterScore = (c) =>
+  c.color === PEARL ? S.pearlClusterPoints(c.cells.length) : c.color === STAR ? S.starClusterPoints(c.cells.length) : S.clusterPoints(c.cells.length);
+
 export class Game {
-  constructor({ mode = 'classic', seed = Date.now(), cols = 10, rows = 9 } = {}) {
+  // pearlWin：3 顆黑珍珠相鄰就破關；classicBombs：經典模式後期也出現炸彈
+  constructor({ mode = 'classic', seed = Date.now(), cols = 10, rows = 9, pearlWin = true, classicBombs = false } = {}) {
     this.mode = mode;
+    this.rules = { pearlWin };
+    this.classicBombs = classicBombs;
+    this.won = false;
     this.seed = seed;
     this.grid = new HexGrid(cols, rows);
     this.rng = createRng(seed);
@@ -37,12 +44,12 @@ export class Game {
     for (let attempt = 0; attempt < 200; attempt++) {
       for (let i = 0; i < this.grid.size; i++) this.pieces[i] = this.newPiece('ball', this.rng.int(this.colors));
       for (let guard = 0; guard < 500; guard++) {
-        const m = findMatches(this.grid, this.pieces);
+        const m = findMatches(this.grid, this.pieces, this.rules);
         if (!m.any) break;
         const cells = [...m.clusters.flatMap((c) => c.cells), ...m.flowers.flatMap((f) => f.ring)];
         for (const i of cells) this.pieces[i].color = this.rng.int(this.colors);
       }
-      if (!hasMatch(this.grid, this.pieces) && this.findMove()) return;
+      if (!hasMatch(this.grid, this.pieces, this.rules) && this.findMove()) return;
     }
     throw new Error('無法產生盤面');
   }
@@ -96,7 +103,7 @@ export class Game {
     for (let s = 1; s <= n; s++) {
       const moves = this.cycle(pivot.cells, dir);
       events.push({ type: 'rotate', center: { x: pivot.x, y: pivot.y }, dir, moves });
-      if (s < n && hasMatch(this.grid, this.pieces)) {
+      if (s < n && hasMatch(this.grid, this.pieces, this.rules)) {
         matched = true;
         break;
       }
@@ -109,6 +116,11 @@ export class Game {
       this.stats.bestChain = Math.max(this.stats.bestChain, chain);
       this.checkLevel(events);
     }
+    // 3 顆黑珍珠連在一起：破關
+    if (this.won) {
+      this.end(events, 'win');
+      return events;
+    }
     this.tickBombs(events);
     if (!this.over && !this.findMove()) this.end(events, 'nomoves');
     return events;
@@ -118,7 +130,7 @@ export class Game {
   resolve(events) {
     let chain = 0;
     for (;;) {
-      const m = findMatches(this.grid, this.pieces);
+      const m = findMatches(this.grid, this.pieces, this.rules);
       if (!m.any) return chain;
       chain++;
 
@@ -138,7 +150,7 @@ export class Game {
       for (const i of [...removed, ...becomes.keys()]) if (this.pieces[i].kind === 'bomb') defused++;
 
       const base =
-        m.clusters.reduce((sum, c) => sum + (c.color === STAR ? S.starClusterPoints : S.clusterPoints)(c.cells.length), 0) +
+        m.clusters.reduce((sum, c) => sum + clusterScore(c), 0) +
         m.flowers.length * S.FLOWER_POINTS +
         m.pearls.length * S.PEARL_POINTS +
         defused * S.BOMB_POINTS;
@@ -175,10 +187,12 @@ export class Game {
         flowers: m.flowers.length,
         pearls: m.pearls.length,
         starClusters: m.clusters.filter((c) => c.color === STAR).length,
+        pearlClusters: m.clusters.filter((c) => c.color === PEARL).length,
         defused,
         toGo: this.combosToGo,
       });
       events.push(this.collapse());
+      if (m.clusters.some((c) => c.color === PEARL)) this.won = true;
     }
   }
 
@@ -211,8 +225,7 @@ export class Game {
   spawnPiece() {
     const color = this.rng.int(this.colors);
     if (
-      this.mode === 'bomb' &&
-      this.moves >= S.BOMB_FIRST_MOVE &&
+      this.bombsEnabled &&
       this.bombCooldown <= 0 &&
       this.pieces.filter((p) => p?.kind === 'bomb').length < S.maxBombs(this.level) &&
       this.rng.next() < 0.5
@@ -221,6 +234,12 @@ export class Game {
       return this.newPiece('bomb', color, S.bombTimer(this.level));
     }
     return this.newPiece('ball', color);
+  }
+
+  // 炸彈模式第 3 步起；經典模式開了炸彈設定時從第 3 級起
+  get bombsEnabled() {
+    if (this.mode === 'bomb') return this.moves >= S.BOMB_FIRST_MOVE;
+    return this.classicBombs && this.level >= S.CLASSIC_BOMB_LEVEL;
   }
 
   checkLevel(events) {
@@ -266,7 +285,7 @@ export class Game {
       let found = 0;
       for (let s = 1; s < n && !found; s++) {
         this.cycle(pivot.cells, 'cw');
-        if (hasMatch(this.grid, this.pieces)) found = s;
+        if (hasMatch(this.grid, this.pieces, this.rules)) found = s;
       }
       // 轉回原位
       for (let s = found || n - 1; s < n; s++) this.cycle(pivot.cells, 'cw');

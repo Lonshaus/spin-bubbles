@@ -42,6 +42,12 @@ const DICT = {
     menu: '主選單',
     paused: '暫停',
     gameover: '遊戲結束',
+    victory: '破關！',
+    'reason.win': '3 顆黑珍珠連在一起！',
+    pearlWin: '黑珍珠破關（3 顆相鄰）',
+    classicBombs: '經典模式出現炸彈',
+    rulesNote: '規則設定從下一局開始生效',
+    version: '版本',
     'reason.nomoves': '沒有可以走的步了',
     'reason.bomb': '炸彈爆炸了！',
     newbest: '新紀錄！',
@@ -80,9 +86,9 @@ const DICT = {
       <h3>⭐ 星星</h3>
       <p>讓 <b>6 顆同色球圍成一圈</b>，中間那顆會變成星星。指向星星可以旋轉它周圍的一圈。<b>3 顆星星互相相鄰</b>時，不論顏色都會消除，分數很高。<br>只差一顆時，那 5 顆會發光，缺的位置會用需要的顏色框起來。</p>
       <h3>⚫ 黑珍珠</h3>
-      <p>讓 <b>6 顆星星圍成一圈</b>，中間會變成黑珍珠，分數超高。指向黑珍珠可以用 Y 字形旋轉。</p>
+      <p>讓 <b>6 顆星星圍成一圈</b>，中間會變成黑珍珠，分數超高。指向黑珍珠可以用 Y 字形旋轉。<br><b>3 顆黑珍珠互相相鄰就破關！</b>（可以在設定裡關掉，改成一直玩到沒步可走）</p>
       <h3>💣 炸彈模式</h3>
-      <p>炸彈上的數字每轉一次減 1，歸零就結束。把炸彈和同色球一起消掉就能拆除。</p>
+      <p>炸彈上的數字每轉一次減 1，歸零就結束。把炸彈和同色球一起消掉就能拆除。在設定裡也可以讓經典模式從第 3 級開始出現炸彈。</p>
       <h3>鍵盤</h3>
       <p>空白鍵：切換方向　Enter / X：旋轉　H：提示　P / Esc：暫停　M：靜音</p>`,
   },
@@ -125,6 +131,12 @@ const DICT = {
     menu: 'Main menu',
     paused: 'Paused',
     gameover: 'Game Over',
+    victory: 'You win!',
+    'reason.win': 'Three black pearls together!',
+    pearlWin: 'Black pearl victory (3 touching)',
+    classicBombs: 'Bombs in Classic',
+    rulesNote: 'Rule changes apply from the next game',
+    version: 'Version',
     'reason.nomoves': 'No more moves',
     'reason.bomb': 'A bomb exploded!',
     newbest: 'New best!',
@@ -163,9 +175,9 @@ const DICT = {
       <h3>⭐ Stars</h3>
       <p>Surround a bubble with a <b>ring of 6 same-colored bubbles</b> and it becomes a star. Point at a star to spin the ring around it. <b>Three touching stars</b> pop no matter their color, for big points.<br>When you're one bubble short, the five glow and the empty spot is outlined in the color you need.</p>
       <h3>⚫ Black Pearls</h3>
-      <p>Make a <b>ring of 6 stars</b> to create a black pearl, worth a huge bonus. Point at a pearl to spin in a Y shape.</p>
+      <p>Make a <b>ring of 6 stars</b> to create a black pearl, worth a huge bonus. Point at a pearl to spin in a Y shape.<br><b>Get three black pearls touching to win!</b> (Turn this off in Settings to play until no moves are left.)</p>
       <h3>💣 Bomb mode</h3>
-      <p>Each spin lowers a bomb's counter by 1. At zero it explodes and the game ends. Match a bomb with its color to defuse it.</p>
+      <p>Each spin lowers a bomb's counter by 1. At zero it explodes and the game ends. Match a bomb with its color to defuse it. In Settings you can also add bombs to Classic from level 3.</p>
       <h3>Keyboard</h3>
       <p>Space: switch direction · Enter / X: spin · H: hint · P / Esc: pause · M: mute</p>`,
   },
@@ -208,6 +220,12 @@ const DICT = {
     menu: 'メニュー',
     paused: '一時停止',
     gameover: 'ゲームオーバー',
+    victory: 'クリア！',
+    'reason.win': 'ブラックパール3つがそろった！',
+    pearlWin: 'ブラックパール3つでクリア',
+    classicBombs: 'クラシックにも爆弾',
+    rulesNote: 'ルール設定は次のゲームから反映されます',
+    version: 'バージョン',
     'reason.nomoves': '動かせる手がありません',
     'reason.bomb': '爆弾が爆発した！',
     newbest: '新記録！',
@@ -246,9 +264,9 @@ const DICT = {
       <h3>⭐ スター</h3>
       <p>あるバブルの周りを<b>同じ色の6つで囲む</b>と、中心がスターになります。スターを指すと周りの輪を回せます。<b>スター3つが接する</b>と色に関係なく消え、高得点です。<br>あと1つのときは5つが光り、足りない場所が必要な色の枠で示されます。</p>
       <h3>⚫ ブラックパール</h3>
-      <p><b>スター6つで輪</b>を作るとブラックパールに。超高得点です。パールを指すとY字型に回せます。</p>
+      <p><b>スター6つで輪</b>を作るとブラックパールに。超高得点です。パールを指すとY字型に回せます。<br><b>ブラックパール3つが接すればクリア！</b>（設定でオフにすると、動かせる手がなくなるまで遊べます）</p>
       <h3>💣 ボムモード</h3>
-      <p>回すたびに爆弾の数字が1減り、0で爆発してゲームオーバー。同じ色とそろえて消せば解除できます。</p>
+      <p>回すたびに爆弾の数字が1減り、0で爆発してゲームオーバー。同じ色とそろえて消せば解除できます。設定でクラシックにもレベル3から爆弾を出せます。</p>
       <h3>キーボード</h3>
       <p>スペース：向きを切り替え　Enter / X：回転　H：ヒント　P / Esc：一時停止　M：ミュート</p>`,
   },

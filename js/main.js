@@ -49,7 +49,12 @@ function applySettings() {
   audio.setMusic(settings.music);
   $('set-lang').value = settings.lang;
   $('set-quality').value = settings.quality;
-  for (const [id, on] of [['set-sfx', settings.sfx], ['set-music', settings.music]]) {
+  for (const [id, on] of [
+    ['set-sfx', settings.sfx],
+    ['set-music', settings.music],
+    ['set-pearl', settings.pearlWin],
+    ['set-bombs', settings.classicBombs],
+  ]) {
     $(id).textContent = t(on ? 'on' : 'off');
     $(id).setAttribute('aria-pressed', String(on));
   }
@@ -134,7 +139,7 @@ function startGame(m) {
   state = 'playing';
   audio.muted = false;
   audio.unlock();
-  newBoard({ mode });
+  newBoard({ mode, pearlWin: settings.pearlWin, classicBombs: settings.classicBombs });
   hud.reset(game);
   hud.callout('levelup', { n: 1 }, t(touchMode ? 'touch.tip' : 'mouse.tip'));
   showChrome();
@@ -166,6 +171,7 @@ function finish() {
   const best = store.loadBest(mode);
   const isBest = game.score > best;
   if (isBest) store.saveBest(mode, game.score);
+  $('over-title').textContent = t(game.overReason === 'win' ? 'victory' : 'gameover');
   $('over-reason').textContent = t(`reason.${game.overReason}`);
   $('over-score').textContent = game.score.toLocaleString();
   $('over-best').classList.toggle('hidden', !isBest);
@@ -371,6 +377,14 @@ $('set-music').addEventListener('click', (e) => {
   e.preventDefault();
   changeSetting('music', !settings.music);
 });
+$('set-pearl').addEventListener('click', (e) => {
+  e.preventDefault();
+  changeSetting('pearlWin', !settings.pearlWin);
+});
+$('set-bombs').addEventListener('click', (e) => {
+  e.preventDefault();
+  changeSetting('classicBombs', !settings.classicBombs);
+});
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -380,6 +394,10 @@ document.addEventListener('visibilitychange', () => {
     audio.resume();
   }
 });
+
+// 設定頁顯示目前版本（部署時換成 commit 編號，本機開發顯示 dev）
+const build = document.querySelector('meta[name="build"]')?.content ?? '';
+$('build').textContent = build.startsWith('__') ? 'dev' : build;
 
 // ---------- PWA：離線快取與安裝 ----------
 

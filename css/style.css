@@ -420,6 +420,12 @@ button.mode.bomb {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.setting-note {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .setting select,
 button.toggle {
   min-width: 140px;

@@ -263,3 +263,45 @@ test('自動玩很多步不會出錯', () => {
     assert.ok(game.level > 1);
   }
 });
+
+test('3 顆互相相鄰的黑珍珠 → 破關', () => {
+  const game = new Game({ seed: 21 });
+  const { grid } = game;
+  blankBoard(game);
+  const t = grid.triangles[40];
+  game.pieces[t.cells[0]] = game.newPiece('pearl');
+  game.pieces[t.cells[1]] = game.newPiece('pearl');
+  // 第三顆放在旁邊，轉一下就湊成三角形
+  const pivot = game.pivots().find((p) => p.type === 'tri' && p.cells.includes(t.cells[2]) && !p.cells.includes(t.cells[0]) && !p.cells.includes(t.cells[1]));
+  const src = pivot.cells.find((c) => c !== t.cells[2]);
+  game.pieces[src] = game.newPiece('pearl');
+  const dir = pivot.cells[(pivot.cells.indexOf(src) + 1) % 3] === t.cells[2] ? 'cw' : 'ccw';
+  const events = game.rotate(pivot, dir);
+  assert.ok(game.over);
+  assert.equal(game.overReason, 'win');
+  assert.equal(events.find((e) => e.type === 'clear').pearlClusters, 1);
+  assert.ok(game.score >= 30000);
+});
+
+test('關掉黑珍珠破關時，3 顆黑珍珠相鄰也不會消除', () => {
+  const game = new Game({ seed: 22, pearlWin: false });
+  const { grid } = game;
+  blankBoard(game);
+  for (const i of grid.triangles[40].cells) game.pieces[i] = game.newPiece('pearl');
+  assert.equal(hasMatch(grid, game.pieces, game.rules), false);
+});
+
+test('經典模式開啟炸彈後，從第 3 級開始會出現炸彈', () => {
+  const off = new Game({ seed: 23 });
+  const on = new Game({ seed: 23, classicBombs: true });
+  for (const game of [off, on]) {
+    for (let k = 0; k < 400 && !game.over; k++) {
+      const move = game.findMove();
+      game.rotate(move.pivot, move.dir);
+      if (game.pieces.some((p) => p.kind === 'bomb')) break;
+    }
+  }
+  assert.ok(!off.pieces.some((p) => p.kind === 'bomb'));
+  assert.ok(on.pieces.some((p) => p.kind === 'bomb') || on.overReason === 'bomb');
+  assert.ok(on.level >= 3);
+});

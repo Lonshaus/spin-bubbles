@@ -3,23 +3,29 @@
 //  - 星星群組：三顆互相相鄰的星星，不論顏色都會消除（高分）
 //  - 花環：某格周圍 6 顆同色 → 中心變星星
 //  - 珍珠環：某格周圍 6 顆星星 → 中心變黑珍珠
+//  - 珍珠群組（設定開啟時）：三顆互相相鄰的黑珍珠 → 破關
+//
+// opts.pearlWin：黑珍珠是否參與三角形配對
 
 // 可參與顏色配對的棋子回傳顏色，其餘（星星、珍珠、空格）回傳 -1
 export function matchColor(piece) {
   return piece && (piece.kind === 'ball' || piece.kind === 'bomb') ? piece.color : -1;
 }
 
-// 星星群組的「顏色」
+// 星星、黑珍珠群組的「顏色」
 export const STAR = -2;
+export const PEARL = -3;
 
-// 三角形配對用的分類：球／炸彈看顏色，星星自成一類，其餘不參與
-function matchKey(piece) {
-  return piece?.kind === 'star' ? STAR : matchColor(piece);
+// 三角形配對用的分類：球／炸彈看顏色，星星自成一類，黑珍珠只在破關規則開啟時參與
+function matchKey(piece, opts) {
+  if (piece?.kind === 'star') return STAR;
+  if (piece?.kind === 'pearl') return opts.pearlWin ? PEARL : -1;
+  return matchColor(piece);
 }
 
-function sameColorTriangle(pieces, cells) {
-  const key = matchKey(pieces[cells[0]]);
-  return key !== -1 && matchKey(pieces[cells[1]]) === key && matchKey(pieces[cells[2]]) === key;
+function sameColorTriangle(pieces, cells, opts) {
+  const key = matchKey(pieces[cells[0]], opts);
+  return key !== -1 && matchKey(pieces[cells[1]], opts) === key && matchKey(pieces[cells[2]], opts) === key;
 }
 
 function fullRing(grid, i) {
@@ -40,7 +46,7 @@ function isPearlRing(grid, pieces, i) {
   return ring.every((j) => pieces[j]?.kind === 'star');
 }
 
-export function findMatches(grid, pieces) {
+export function findMatches(grid, pieces, opts = {}) {
   const parent = new Map();
   const find = (a) => {
     while (parent.get(a) !== a) {
@@ -55,7 +61,7 @@ export function findMatches(grid, pieces) {
   };
 
   for (const t of grid.triangles) {
-    if (!sameColorTriangle(pieces, t.cells)) continue;
+    if (!sameColorTriangle(pieces, t.cells, opts)) continue;
     union(t.cells[0], t.cells[1]);
     union(t.cells[0], t.cells[2]);
   }
@@ -66,7 +72,7 @@ export function findMatches(grid, pieces) {
     if (!groups.has(root)) groups.set(root, []);
     groups.get(root).push(i);
   }
-  const clusters = [...groups.values()].map((cells) => ({ cells, color: matchKey(pieces[cells[0]]) }));
+  const clusters = [...groups.values()].map((cells) => ({ cells, color: matchKey(pieces[cells[0]], opts) }));
 
   const flowers = [];
   const pearls = [];
@@ -101,8 +107,8 @@ export function findNearRings(grid, pieces) {
 }
 
 // 只判斷有沒有配對（找可走步時大量呼叫，提早結束）
-export function hasMatch(grid, pieces) {
-  for (const t of grid.triangles) if (sameColorTriangle(pieces, t.cells)) return true;
+export function hasMatch(grid, pieces, opts = {}) {
+  for (const t of grid.triangles) if (sameColorTriangle(pieces, t.cells, opts)) return true;
   for (let i = 0; i < grid.size; i++) {
     if (isFlower(grid, pieces, i) || isPearlRing(grid, pieces, i)) return true;
   }

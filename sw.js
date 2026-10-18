@@ -1,8 +1,8 @@
 // Service worker：讓遊戲可以安裝、離線玩。
 // 策略是「網路優先」：連得上就抓最新版（並更新快取），所以部署後不會卡在舊版；
-// 連不上才用快取。改了檔案清單時順便把 CACHE 的版本號加 1，舊快取會被清掉。
+// 連不上才用快取。__BUILD__ 會在部署時換成 commit 編號，每次部署都是新的快取、舊的自動清掉。
 
-const CACHE = 'spin-bubbles-v2';
+const CACHE = 'spin-bubbles-__BUILD__';
 
 // 開啟一次就先存好、之後離線也能玩的檔案（tests/core.test.js 會檢查每個都存在）
 const CORE = [

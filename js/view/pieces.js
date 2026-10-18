@@ -309,6 +309,9 @@ export class BoardView {
     for (const obj of this.near.children) obj.material.opacity = 0.35 + 0.65 * breathe;
     for (const e of this.entries.values()) {
       const kind = e.piece.kind;
+      // 每顆寶石各自輕微擺動，切面輪流反光（相位錯開，不會整盤一起動）
+      e.body.rotation.x = Math.sin(this.time * 0.9 + e.phase) * 0.13;
+      e.body.rotation.y = Math.cos(this.time * 0.7 + e.phase * 1.7) * 0.13;
       if (kind === 'star') {
         const star = e.body.children[1];
         star.rotation.z = this.time * 0.9 + e.phase;

@@ -153,6 +153,15 @@ export class Director {
       this.stage.shake = 1.4;
       this.audio.explode();
       await this.tweens.wait(1.1);
+    } else if (e.reason === 'win') {
+      // 破關：大字＋紫色光芒＋勝利音效
+      this.hud.callout('victory');
+      this.audio.levelUp();
+      this.audio.pearl();
+      const center = new THREE.Vector3(0, 0, 0);
+      this.fx.flash(center, PEARL_COLOR, 22, 1.4);
+      this.fx.ring(center, PEARL_COLOR, 18, 1.2);
+      await this.tweens.wait(1.8);
     } else {
       this.audio.gameOver();
       await this.tweens.wait(0.6);

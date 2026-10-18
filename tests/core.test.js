@@ -188,6 +188,24 @@ test('周圍 6 顆星星 → 中心變黑珍珠', () => {
   assert.ok(!game.pieces.some((p) => p.kind === 'star'));
 });
 
+test('3 顆互相相鄰的星星不論顏色都會消除，直線三顆不算', () => {
+  const game = new Game({ seed: 14 });
+  const { grid } = game;
+  blankBoard(game);
+  for (const i of grid.columns[4].slice(2, 5)) game.pieces[i] = game.newPiece('star');
+  assert.equal(hasMatch(grid, game.pieces), false);
+
+  blankBoard(game);
+  const t = grid.triangles[40];
+  for (const i of t.cells) game.pieces[i] = game.newPiece('star');
+  const events = [];
+  game.resolve(events);
+  const clear = events.find((e) => e.type === 'clear');
+  assert.equal(clear.starClusters, 1);
+  assert.ok(clear.points >= 1500, `星星群組分數應該很高，實際 ${clear.points}`);
+  assert.equal(game.stats.starsCleared, 3);
+});
+
 test('星星可以轉周圍一圈，黑珍珠有兩種 Y 字形', () => {
   const game = new Game({ seed: 10 });
   const { grid } = game;

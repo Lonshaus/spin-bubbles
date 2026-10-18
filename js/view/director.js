@@ -71,13 +71,14 @@ export class Director {
 
     fx.burst(burst, { count: e.chain > 1 ? 18 : 14, speed: 5 + e.chain });
     this.audio.clear(e.chain, e.removed.length);
-    if (e.flowers) this.audio.star();
+    if (e.flowers || e.starClusters) this.audio.star();
     if (e.pearls) this.audio.pearl();
     if (e.defused) this.audio.defuse();
 
     this.hud.floatText(center, `+${e.points.toLocaleString()}`, e.chain > 1 ? 'big' : '');
     if (e.chain > 1) this.hud.callout('chain', { n: e.chain });
     if (e.pearls) this.hud.callout('pearl');
+    else if (e.starClusters) this.hud.callout('starBlast');
     else if (e.flowers) this.hud.callout('star');
     else if (e.defused) this.hud.callout('defused');
     this.hud.setScore(e.score);

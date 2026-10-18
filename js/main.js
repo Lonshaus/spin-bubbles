@@ -174,6 +174,7 @@ function finish() {
     ['stat.moves', game.moves],
     ['stat.chain', game.stats.bestChain],
     ['stat.stars', game.stats.stars],
+    ['stat.starsCleared', game.stats.starsCleared],
     ['stat.pearls', game.stats.pearls],
   ];
   if (mode === 'bomb') rows.push(['stat.bombs', game.stats.bombsDefused]);

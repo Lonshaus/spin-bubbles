@@ -41,6 +41,7 @@ const DICT = {
     levelup: '第 {n} 關',
     newcolor: '新顏色加入！',
     star: '星星誕生！',
+    starBlast: '星星大消除！',
     pearl: '黑珍珠！',
     defused: '炸彈拆除！',
     hint: '提示',
@@ -48,6 +49,7 @@ const DICT = {
     close: '關閉',
     'stat.moves': '步數',
     'stat.stars': '星星',
+    'stat.starsCleared': '消除的星星',
     'stat.pearls': '黑珍珠',
     'stat.bombs': '拆除炸彈',
     'stat.chain': '最大連鎖',
@@ -67,7 +69,7 @@ const DICT = {
       <p>球掉下來之後又形成配對就是<b>連鎖</b>，分數會加倍。</p>
       <p>上方的<b>剩餘目標</b>是這一關還要配對幾次，歸零就過關；第 4、7、10 關會加入新顏色。</p>
       <h3>⭐ 星星</h3>
-      <p>讓 <b>6 顆同色球圍成一圈</b>，中間那顆會變成星星。指向星星可以旋轉它周圍的一圈。<br>只差一顆時，那 5 顆會發光，缺的位置會用需要的顏色框起來。</p>
+      <p>讓 <b>6 顆同色球圍成一圈</b>，中間那顆會變成星星。指向星星可以旋轉它周圍的一圈。<b>3 顆星星互相相鄰</b>時，不論顏色都會消除，分數很高。<br>只差一顆時，那 5 顆會發光，缺的位置會用需要的顏色框起來。</p>
       <h3>⚫ 黑珍珠</h3>
       <p>讓 <b>6 顆星星圍成一圈</b>，中間會變成黑珍珠，分數超高。指向黑珍珠可以用 Y 字形旋轉。</p>
       <h3>💣 炸彈模式</h3>
@@ -113,6 +115,7 @@ const DICT = {
     levelup: 'Level {n}',
     newcolor: 'New color!',
     star: 'Star!',
+    starBlast: 'Star blast!',
     pearl: 'Black Pearl!',
     defused: 'Defused!',
     hint: 'Hint',
@@ -120,6 +123,7 @@ const DICT = {
     close: 'Close',
     'stat.moves': 'Moves',
     'stat.stars': 'Stars',
+    'stat.starsCleared': 'Stars popped',
     'stat.pearls': 'Black pearls',
     'stat.bombs': 'Bombs defused',
     'stat.chain': 'Best chain',
@@ -139,7 +143,7 @@ const DICT = {
       <p>When falling bubbles form new matches you get a <b>chain</b> and a score multiplier.</p>
       <p><b>Combos to go</b> at the top counts the matches left in this level; reach zero to level up. New colors join at levels 4, 7 and 10.</p>
       <h3>⭐ Stars</h3>
-      <p>Surround a bubble with a <b>ring of 6 same-colored bubbles</b> and it becomes a star. Point at a star to spin the ring around it.<br>When you're one bubble short, the five glow and the empty spot is outlined in the color you need.</p>
+      <p>Surround a bubble with a <b>ring of 6 same-colored bubbles</b> and it becomes a star. Point at a star to spin the ring around it. <b>Three touching stars</b> pop no matter their color, for big points.<br>When you're one bubble short, the five glow and the empty spot is outlined in the color you need.</p>
       <h3>⚫ Black Pearls</h3>
       <p>Make a <b>ring of 6 stars</b> to create a black pearl, worth a huge bonus. Point at a pearl to spin in a Y shape.</p>
       <h3>💣 Bomb mode</h3>
@@ -185,6 +189,7 @@ const DICT = {
     levelup: 'レベル {n}',
     newcolor: '新しい色が追加！',
     star: 'スター誕生！',
+    starBlast: 'スター消し！',
     pearl: 'ブラックパール！',
     defused: '爆弾解除！',
     hint: 'ヒント',
@@ -192,6 +197,7 @@ const DICT = {
     close: '閉じる',
     'stat.moves': '手数',
     'stat.stars': 'スター',
+    'stat.starsCleared': '消したスター',
     'stat.pearls': 'ブラックパール',
     'stat.bombs': '解除した爆弾',
     'stat.chain': '最大連鎖',
@@ -211,7 +217,7 @@ const DICT = {
       <p>落ちてきたバブルでまたそろうと<b>連鎖</b>になり、スコアが倍増します。</p>
       <p>上の<b>残り目標</b>はこのレベルであと何回そろえればいいか。0 になればレベルアップ。レベル 4・7・10 で新しい色が加わります。</p>
       <h3>⭐ スター</h3>
-      <p>あるバブルの周りを<b>同じ色の6つで囲む</b>と、中心がスターになります。スターを指すと周りの輪を回せます。<br>あと1つのときは5つが光り、足りない場所が必要な色の枠で示されます。</p>
+      <p>あるバブルの周りを<b>同じ色の6つで囲む</b>と、中心がスターになります。スターを指すと周りの輪を回せます。<b>スター3つが接する</b>と色に関係なく消え、高得点です。<br>あと1つのときは5つが光り、足りない場所が必要な色の枠で示されます。</p>
       <h3>⚫ ブラックパール</h3>
       <p><b>スター6つで輪</b>を作るとブラックパールに。超高得点です。パールを指すとY字型に回せます。</p>
       <h3>💣 ボムモード</h3>

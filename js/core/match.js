@@ -1,5 +1,6 @@
 // 配對偵測：
 //  - 群組：三顆互相相鄰（三角形）的同色球，重疊的三角形合併成一個群組；直線三顆不算
+//  - 星星群組：三顆互相相鄰的星星，不論顏色都會消除（高分）
 //  - 花環：某格周圍 6 顆同色 → 中心變星星
 //  - 珍珠環：某格周圍 6 顆星星 → 中心變黑珍珠
 
@@ -8,9 +9,17 @@ export function matchColor(piece) {
   return piece && (piece.kind === 'ball' || piece.kind === 'bomb') ? piece.color : -1;
 }
 
+// 星星群組的「顏色」
+export const STAR = -2;
+
+// 三角形配對用的分類：球／炸彈看顏色，星星自成一類，其餘不參與
+function matchKey(piece) {
+  return piece?.kind === 'star' ? STAR : matchColor(piece);
+}
+
 function sameColorTriangle(pieces, cells) {
-  const color = matchColor(pieces[cells[0]]);
-  return color >= 0 && matchColor(pieces[cells[1]]) === color && matchColor(pieces[cells[2]]) === color;
+  const key = matchKey(pieces[cells[0]]);
+  return key !== -1 && matchKey(pieces[cells[1]]) === key && matchKey(pieces[cells[2]]) === key;
 }
 
 function fullRing(grid, i) {
@@ -57,7 +66,7 @@ export function findMatches(grid, pieces) {
     if (!groups.has(root)) groups.set(root, []);
     groups.get(root).push(i);
   }
-  const clusters = [...groups.values()].map((cells) => ({ cells, color: matchColor(pieces[cells[0]]) }));
+  const clusters = [...groups.values()].map((cells) => ({ cells, color: matchKey(pieces[cells[0]]) }));
 
   const flowers = [];
   const pearls = [];

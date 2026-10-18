@@ -3,7 +3,7 @@
 
 import { HexGrid } from './hexgrid.js';
 import { createRng } from './rng.js';
-import { findMatches, findNearRings, hasMatch } from './match.js';
+import { STAR, findMatches, findNearRings, hasMatch } from './match.js';
 import * as S from './score.js';
 
 export const MODES = ['classic', 'bomb'];
@@ -23,7 +23,7 @@ export class Game {
     this.bombCooldown = 0;
     this.over = false;
     this.overReason = null;
-    this.stats = { stars: 0, pearls: 0, bombsDefused: 0, bestChain: 0, cleared: 0, combos: 0 };
+    this.stats = { stars: 0, pearls: 0, bombsDefused: 0, bestChain: 0, cleared: 0, combos: 0, starsCleared: 0 };
     this.pieces = new Array(this.grid.size).fill(null);
     this.generate();
   }
@@ -138,7 +138,7 @@ export class Game {
       for (const i of [...removed, ...becomes.keys()]) if (this.pieces[i].kind === 'bomb') defused++;
 
       const base =
-        m.clusters.reduce((sum, c) => sum + S.clusterPoints(c.cells.length), 0) +
+        m.clusters.reduce((sum, c) => sum + (c.color === STAR ? S.starClusterPoints : S.clusterPoints)(c.cells.length), 0) +
         m.flowers.length * S.FLOWER_POINTS +
         m.pearls.length * S.PEARL_POINTS +
         defused * S.BOMB_POINTS;
@@ -161,6 +161,7 @@ export class Game {
       this.stats.cleared += removed.size;
       this.stats.stars += [...becomes.values()].filter((k) => k === 'star').length;
       this.stats.pearls += m.pearls.length;
+      this.stats.starsCleared += m.clusters.filter((c) => c.color === STAR).reduce((n, c) => n + c.cells.length, 0);
       this.stats.bombsDefused += defused;
 
       events.push({
@@ -173,6 +174,7 @@ export class Game {
         clusters: m.clusters.map((c) => ({ cells: c.cells, color: c.color })),
         flowers: m.flowers.length,
         pearls: m.pearls.length,
+        starClusters: m.clusters.filter((c) => c.color === STAR).length,
         defused,
         toGo: this.combosToGo,
       });

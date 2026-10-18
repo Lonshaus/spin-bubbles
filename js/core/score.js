@@ -3,9 +3,11 @@
 export const FLOWER_POINTS = 250;
 export const PEARL_POINTS = 2500;
 export const BOMB_POINTS = 50;
+export const STAR_POINTS = 500; // 星星群組裡每顆星星的分數
 
 // 群組大小 n：3 → 15、4 → 40、5 → 75 …
 export const clusterPoints = (n) => 5 * n * (n - 2);
+export const starClusterPoints = (n) => STAR_POINTS * n;
 
 // 原版開局就是 6 色；之後逐關加色，8 色以上經典模式才會真的走到無步可走
 export const MAX_COLORS = 9;

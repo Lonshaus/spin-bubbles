@@ -334,6 +334,15 @@ addEventListener('keydown', (e) => {
 for (const btn of document.querySelectorAll('[data-mode]')) btn.addEventListener('click', () => startGame(btn.dataset.mode));
 for (const btn of document.querySelectorAll('[data-open]')) btn.addEventListener('click', () => openScreen(btn.dataset.open));
 for (const btn of document.querySelectorAll('[data-close]')) btn.addEventListener('click', closeScreen);
+
+// 點選單外面（半透明背景）也能關閉：暫停 → 繼續，說明／設定 → 返回上一層
+for (const name of ['pause', 'howto', 'settings']) {
+  $(`screen-${name}`).addEventListener('click', (e) => {
+    if (e.target !== e.currentTarget) return;
+    if (name === 'pause') resume();
+    else closeScreen();
+  });
+}
 for (const btn of document.querySelectorAll('[data-action="menu"]')) btn.addEventListener('click', startDemo);
 for (const btn of document.querySelectorAll('button')) btn.addEventListener('pointerdown', () => audio.unlock());
 

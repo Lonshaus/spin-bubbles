@@ -103,7 +103,7 @@ export class Stage {
 
   render(dt) {
     this.parallax.lerp(this.parallaxGoal, 1 - Math.exp(-dt * 3));
-    this.shake = Math.max(0, this.shake - dt * 2.5);
+    this.shake = Math.min(2, Math.max(0, this.shake - dt * 2.5));
     this.placeCamera();
     this.bubbles.userData.update(dt);
     if (this.quality === 'high' && this.composer) this.composer.render(dt);

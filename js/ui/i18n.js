@@ -50,11 +50,13 @@ const DICT = {
     'stat.chain': '最大連鎖',
     'touch.ccw': '逆時針',
     'touch.cw': '順時針',
-    'touch.tip': '點一下選擇要轉的位置',
+    'touch.tip': '點一下選取，再點一次旋轉',
+    'dir.toggle': '點這裡切換方向',
     howtoBody: `
       <h3>基本玩法</h3>
-      <p>把游標移到三顆球的交會點，三顆球會被框起來。<b>左鍵順時針</b>、<b>右鍵逆時針</b>旋轉。<br>
-      手機上先<b>點一下</b>選位置，再按下方的 ↺ ↻ 按鈕。</p>
+      <p>把游標移到三顆球的交會點，三顆球會被框起來，<b>按左鍵</b>就往目前的方向旋轉。<br>
+      旋轉方向用<b>一個鍵切換</b>：右鍵、空白鍵或右上角的 ↻ / ↺ 按鈕。框框中間的箭頭會顯示目前方向。<br>
+      手機上<b>點一下</b>選取、<b>再點一次</b>旋轉，右下角的大按鈕切換方向。</p>
       <p>一次旋轉最多轉三下，中途一出現配對就停；轉一圈都沒有配對就會回到原位。</p>
       <h3>配對</h3>
       <p><b>三顆互相相鄰（三角形）</b>的同色球會消除，直線三顆不算。連在一起的三角形會一起消除。</p>
@@ -66,7 +68,7 @@ const DICT = {
       <h3>💣 炸彈模式</h3>
       <p>炸彈上的數字每轉一次減 1，歸零就結束。把炸彈和同色球一起消掉就能拆除。</p>
       <h3>鍵盤</h3>
-      <p>← / Z：逆時針　→ / X：順時針　H：提示　P / Esc：暫停　M：靜音</p>`,
+      <p>空白鍵：切換方向　Enter / X：旋轉　H：提示　P / Esc：暫停　M：靜音</p>`,
   },
   en: {
     title: 'Spin Bubbles',
@@ -115,11 +117,13 @@ const DICT = {
     'stat.chain': 'Best chain',
     'touch.ccw': 'Counter-clockwise',
     'touch.cw': 'Clockwise',
-    'touch.tip': 'Tap to choose where to spin',
+    'touch.tip': 'Tap to select, tap again to spin',
+    'dir.toggle': 'click to switch direction',
     howtoBody: `
       <h3>Basics</h3>
-      <p>Point at a spot where three bubbles meet to select them. <b>Left click</b> spins clockwise, <b>right click</b> counter-clockwise.<br>
-      On touch screens, <b>tap</b> to select, then use the ↺ ↻ buttons.</p>
+      <p>Point at a spot where three bubbles meet to select them, then <b>left click</b> to spin in the current direction.<br>
+      <b>One key switches direction</b>: right click, Space, or the ↻ / ↺ button at the top right. The arrow in the middle of the selection shows the current direction.<br>
+      On touch screens, <b>tap</b> to select and <b>tap again</b> to spin; the big button at the bottom right switches direction.</p>
       <p>A spin turns up to three times and stops as soon as a match appears. If nothing matches, the bubbles return to where they started.</p>
       <h3>Matches</h3>
       <p><b>Three touching bubbles of one color (a triangle)</b> pop. A straight line doesn't count. Connected triangles pop together.</p>
@@ -131,7 +135,7 @@ const DICT = {
       <h3>💣 Bomb mode</h3>
       <p>Each spin lowers a bomb's counter by 1. At zero it explodes and the game ends. Match a bomb with its color to defuse it.</p>
       <h3>Keyboard</h3>
-      <p>← / Z: counter-clockwise · → / X: clockwise · H: hint · P / Esc: pause · M: mute</p>`,
+      <p>Space: switch direction · Enter / X: spin · H: hint · P / Esc: pause · M: mute</p>`,
   },
   ja: {
     title: 'くるくるバブル',
@@ -180,11 +184,13 @@ const DICT = {
     'stat.chain': '最大連鎖',
     'touch.ccw': '反時計回り',
     'touch.cw': '時計回り',
-    'touch.tip': 'タップして回す場所を選ぼう',
+    'touch.tip': 'タップで選択、もう一度タップで回転',
+    'dir.toggle': 'クリックで向きを切り替え',
     howtoBody: `
       <h3>基本</h3>
-      <p>3つのバブルが接する点にカーソルを合わせると選択されます。<b>左クリックで時計回り</b>、<b>右クリックで反時計回り</b>に回転。<br>
-      スマホでは<b>タップ</b>で選んでから、下の ↺ ↻ ボタンで回します。</p>
+      <p>3つのバブルが接する点にカーソルを合わせると選択され、<b>左クリック</b>で今の向きに回転します。<br>
+      回転の向きは<b>ひとつのキーで切り替え</b>：右クリック、スペースキー、右上の ↻ / ↺ ボタン。選択枠の中央の矢印が今の向きです。<br>
+      スマホでは<b>タップ</b>で選択、<b>もう一度タップ</b>で回転。右下の大きなボタンで向きを切り替えます。</p>
       <p>1回の操作で最大3回まで回り、そろった時点で止まります。そろわなければ元の位置に戻ります。</p>
       <h3>マッチ</h3>
       <p><b>互いに接する同じ色の3つ（三角形）</b>で消えます。一直線の3つは消えません。つながった三角形はまとめて消えます。</p>
@@ -196,7 +202,7 @@ const DICT = {
       <h3>💣 ボムモード</h3>
       <p>回すたびに爆弾の数字が1減り、0で爆発してゲームオーバー。同じ色とそろえて消せば解除できます。</p>
       <h3>キーボード</h3>
-      <p>← / Z：反時計回り　→ / X：時計回り　H：ヒント　P / Esc：一時停止　M：ミュート</p>`,
+      <p>スペース：向きを切り替え　Enter / X：回転　H：ヒント　P / Esc：一時停止　M：ミュート</p>`,
   },
 };
 

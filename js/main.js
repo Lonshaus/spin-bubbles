@@ -31,6 +31,7 @@ let pivots = [];
 let selected = null;
 let pointer = null; // 滑鼠的 NDC 座標
 let touchMode = coarsePointer;
+let spinDir = settings.dir === 'ccw' ? 'ccw' : 'cw'; // 目前的旋轉方向，用一個鍵切換
 let hintTimer = null;
 let demoDelay = 1;
 let screens = [];
@@ -49,6 +50,7 @@ function applySettings() {
     $(id).textContent = t(on ? 'on' : 'off');
     $(id).setAttribute('aria-pressed', String(on));
   }
+  updateDirUi();
   $('best-classic').textContent = store.loadBest('classic').toLocaleString();
   $('best-bomb').textContent = store.loadBest('bomb').toLocaleString();
 }
@@ -75,6 +77,27 @@ function showChrome() {
   const inGame = state !== 'title';
   $('hud').classList.toggle('hidden', !inGame);
   $('touch').classList.toggle('hidden', !(inGame && touchMode));
+  $('btn-dir').classList.toggle('hidden', touchMode);
+}
+
+// ---------- 旋轉方向 ----------
+
+function toggleDir() {
+  spinDir = spinDir === 'cw' ? 'ccw' : 'cw';
+  settings.dir = spinDir;
+  store.saveSettings(settings);
+  updateDirUi();
+  audio.click();
+}
+
+function updateDirUi() {
+  for (const id of ['btn-dir', 'btn-dir-touch']) {
+    const btn = $(id);
+    btn.textContent = spinDir === 'cw' ? '↻' : '↺';
+    btn.title = `${t(`touch.${spinDir}`)} — ${t('dir.toggle')}`;
+    btn.setAttribute('aria-label', btn.title);
+  }
+  board.setDirection(spinDir);
 }
 
 // ---------- 遊戲流程 ----------
@@ -110,7 +133,7 @@ function startGame(m) {
   setScreens([]);
 }
 
-async function spin(dir) {
+async function spin(dir = spinDir) {
   if (state !== 'playing' || busy) return;
   if (!selected) select(defaultPivot());
   if (!selected) return;
@@ -255,8 +278,8 @@ canvas.addEventListener('pointerdown', (e) => {
     setTouchMode(false);
     pointer = toNdc(e);
     hover(pointer);
-    if (e.button === 0) spin('cw');
-    if (e.button === 2) spin('ccw');
+    if (e.button === 0) spin();
+    if (e.button === 2) toggleDir();
   } else {
     down = { x: e.clientX, y: e.clientY };
   }
@@ -269,8 +292,13 @@ canvas.addEventListener('pointerup', (e) => {
   if (moved > 16) return;
   setTouchMode(true);
   if (state === 'playing' && !busy) {
-    select(board.pick(toNdc(e), pivots));
-    audio.click();
+    // 點一下選取，再點同一個位置就旋轉
+    const pivot = board.pick(toNdc(e), pivots);
+    if (pivot && pivot.key === selected?.key) spin();
+    else {
+      select(pivot);
+      audio.click();
+    }
   }
 });
 
@@ -285,9 +313,13 @@ addEventListener('keydown', (e) => {
     changeSetting('sfx', on);
     return;
   }
+  if (key === ' ' && (state === 'playing' || state === 'paused')) {
+    e.preventDefault();
+    toggleDir();
+    return;
+  }
   if (state === 'playing') {
-    if (['arrowleft', 'z', 'q'].includes(key)) spin('ccw');
-    else if (['arrowright', 'x', 'e'].includes(key)) spin('cw');
+    if (key === 'enter' || key === 'x') spin();
     else if (key === 'h') hint();
     else if (key === 'p' || key === 'escape') pause();
   } else if (state === 'paused' && (key === 'p' || key === 'escape') && screens.length === 1) {
@@ -308,8 +340,8 @@ $('btn-resume').addEventListener('click', resume);
 $('btn-restart').addEventListener('click', () => startGame(mode));
 $('btn-pause').addEventListener('click', pause);
 $('btn-hint').addEventListener('click', hint);
-$('btn-cw').addEventListener('click', () => spin('cw'));
-$('btn-ccw').addEventListener('click', () => spin('ccw'));
+$('btn-dir').addEventListener('click', toggleDir);
+$('btn-dir-touch').addEventListener('click', toggleDir);
 $('set-lang').addEventListener('change', (e) => changeSetting('lang', e.target.value));
 $('set-quality').addEventListener('change', (e) => changeSetting('quality', e.target.value));
 $('set-sfx').addEventListener('click', (e) => {
@@ -334,7 +366,8 @@ document.addEventListener('visibilitychange', () => {
 
 let last = performance.now();
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
+  // rAF 的時間戳可能比啟動時記下的 performance.now() 還早，不能讓 dt 變負的
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
   last = now;
   tweens.update(dt);
   board.update(dt);
@@ -361,6 +394,9 @@ window.spinBubbles = {
   },
   get busy() {
     return busy;
+  },
+  get selected() {
+    return selected?.key ?? null;
   },
   startGame,
   spin,

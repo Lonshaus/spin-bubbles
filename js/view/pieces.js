@@ -64,6 +64,8 @@ export class BoardView {
       hint: new THREE.MeshBasicMaterial({ color: 0x7ef9ff, toneMapped: false, transparent: true }),
     };
     this.glowTexture = makeGlowTexture();
+    this.arrows = { cw: makeArrowTexture(false), ccw: makeArrowTexture(true) };
+    this.direction = 'cw';
 
     this.highlight = new THREE.Group();
     this.hint = new THREE.Group();
@@ -190,7 +192,23 @@ export class BoardView {
   }
 
   setHighlight(pivot) {
+    this.highlightPivot = pivot;
     this.buildOutline(this.highlight, pivot, this.mat.edge);
+    if (!pivot) return;
+    // 中間的箭頭顯示目前的旋轉方向
+    const arrow = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: this.arrows[this.direction], transparent: true, depthWrite: false, depthTest: false, toneMapped: false }),
+    );
+    this.world(pivot.x, pivot.y, arrow.position);
+    arrow.position.z = 1.2;
+    arrow.scale.setScalar(pivot.type === 'tri' ? 1.5 : 1.8);
+    arrow.renderOrder = 10;
+    this.highlight.add(arrow);
+  }
+
+  setDirection(dir) {
+    this.direction = dir;
+    if (this.grid) this.setHighlight(this.highlightPivot ?? null);
   }
 
   setHint(pivot) {
@@ -353,6 +371,42 @@ function makeGlowTexture() {
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// 圓弧箭頭（順時針，ccw 時左右鏡射）
+function makeArrowTexture(mirror) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const g = canvas.getContext('2d');
+  if (mirror) {
+    g.translate(128, 0);
+    g.scale(-1, 1);
+  }
+  const r = 38;
+  const start = -Math.PI / 2 + 0.5;
+  const end = start + Math.PI * 1.45;
+  const tip = { x: 64 + Math.cos(end) * r, y: 64 + Math.sin(end) * r };
+  const tangent = { x: -Math.sin(end), y: Math.cos(end) };
+  const normal = { x: Math.cos(end), y: Math.sin(end) };
+  const draw = (color, width, grow) => {
+    g.strokeStyle = g.fillStyle = color;
+    g.lineWidth = width;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.arc(64, 64, r, start, end);
+    g.stroke();
+    g.beginPath();
+    g.moveTo(tip.x + tangent.x * (22 + grow), tip.y + tangent.y * (22 + grow));
+    g.lineTo(tip.x + normal.x * (17 + grow), tip.y + normal.y * (17 + grow));
+    g.lineTo(tip.x - normal.x * (17 + grow), tip.y - normal.y * (17 + grow));
+    g.closePath();
+    g.fill();
+  };
+  draw('rgba(20,15,40,0.85)', 20, 5);
+  draw('#fff3c4', 11, 0);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;

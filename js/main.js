@@ -27,7 +27,6 @@ const coarsePointer = matchMedia('(pointer: coarse)').matches;
 stage.onLayout = (width) => document.documentElement.style.setProperty('--board-w', `${Math.round(width)}px`);
 
 let game = null;
-let mode = 'classic';
 let state = 'title'; // title | playing | paused | over
 let busy = false;
 let pivots = [];
@@ -52,16 +51,13 @@ function applySettings() {
   for (const [id, on] of [
     ['set-sfx', settings.sfx],
     ['set-music', settings.music],
-    ['set-pearl', settings.pearlWin],
-    ['set-bombs', settings.classicBombs],
   ]) {
     $(id).textContent = t(on ? 'on' : 'off');
     $(id).setAttribute('aria-pressed', String(on));
   }
   updateDirUi();
   showChrome();
-  $('best-classic').textContent = store.loadBest('classic').toLocaleString();
-  $('best-bomb').textContent = store.loadBest('bomb').toLocaleString();
+  $('best-score').textContent = store.loadBest().toLocaleString();
 }
 
 function changeSetting(key, value) {
@@ -108,10 +104,10 @@ function updateDirUi() {
 
 // ---------- 遊戲流程 ----------
 
-function newBoard(options) {
+function newBoard() {
   tweens.clear();
   busy = false;
-  game = new Game({ ...options, seed: (Math.random() * 2 ** 32) >>> 0 });
+  game = new Game({ seed: (Math.random() * 2 ** 32) >>> 0 });
   board.build(game);
   settled();
   selected = null;
@@ -127,19 +123,18 @@ function settled() {
 function startDemo() {
   state = 'title';
   audio.muted = true;
-  newBoard({ mode: 'classic' });
+  newBoard();
   demoDelay = 1.2;
   showChrome();
   applySettings();
   setScreens(['title']);
 }
 
-function startGame(m) {
-  mode = m;
+function startGame() {
   state = 'playing';
   audio.muted = false;
   audio.unlock();
-  newBoard({ mode, pearlWin: settings.pearlWin, classicBombs: settings.classicBombs });
+  newBoard();
   hud.reset(game);
   hud.callout('levelup', { n: 1 }, t(touchMode ? 'touch.tip' : 'mouse.tip'));
   showChrome();
@@ -168,9 +163,9 @@ async function spin(dir = spinDir) {
 
 function finish() {
   state = 'over';
-  const best = store.loadBest(mode);
+  const best = store.loadBest();
   const isBest = game.score > best;
-  if (isBest) store.saveBest(mode, game.score);
+  if (isBest) store.saveBest(game.score);
   $('over-title').textContent = t(game.overReason === 'win' ? 'victory' : 'gameover');
   $('over-reason').textContent = t(`reason.${game.overReason}`);
   $('over-score').textContent = game.score.toLocaleString();
@@ -183,7 +178,7 @@ function finish() {
     ['stat.starsCleared', game.stats.starsCleared],
     ['stat.pearls', game.stats.pearls],
   ];
-  if (mode === 'bomb') rows.push(['stat.bombs', game.stats.bombsDefused]);
+  rows.push(['stat.bombs', game.stats.bombsDefused]);
   $('over-stats').replaceChildren(
     ...rows.flatMap(([key, value]) => {
       const dt = document.createElement('dt');
@@ -342,7 +337,7 @@ addEventListener('keydown', (e) => {
   }
 });
 
-for (const btn of document.querySelectorAll('[data-mode]')) btn.addEventListener('click', () => startGame(btn.dataset.mode));
+$('btn-start').addEventListener('click', startGame);
 for (const btn of document.querySelectorAll('[data-open]')) btn.addEventListener('click', () => openScreen(btn.dataset.open));
 for (const btn of document.querySelectorAll('[data-close]')) btn.addEventListener('click', closeScreen);
 
@@ -360,9 +355,9 @@ for (const type of ['click', 'touchend', 'pointerup', 'keydown']) {
   document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
 }
 
-$('btn-again').addEventListener('click', () => startGame(mode));
+$('btn-again').addEventListener('click', startGame);
 $('btn-resume').addEventListener('click', resume);
-$('btn-restart').addEventListener('click', () => startGame(mode));
+$('btn-restart').addEventListener('click', startGame);
 $('btn-pause').addEventListener('click', pause);
 $('btn-hint').addEventListener('click', hint);
 $('btn-dir').addEventListener('click', toggleDir);
@@ -375,14 +370,6 @@ $('set-sfx').addEventListener('click', (e) => {
 $('set-music').addEventListener('click', (e) => {
   e.preventDefault();
   changeSetting('music', !settings.music);
-});
-$('set-pearl').addEventListener('click', (e) => {
-  e.preventDefault();
-  changeSetting('pearlWin', !settings.pearlWin);
-});
-$('set-bombs').addEventListener('click', (e) => {
-  e.preventDefault();
-  changeSetting('classicBombs', !settings.classicBombs);
 });
 
 document.addEventListener('visibilitychange', () => {

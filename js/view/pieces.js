@@ -21,8 +21,10 @@ export class BoardView {
       gem: makeGemGeometry(),
       pearl: new THREE.IcosahedronGeometry(0.82, 1),
       star: makeStarGeometry(),
-      // 炸彈：黑色圓球＋金屬蓋＋彎曲的引信
-      bomb: new THREE.SphereGeometry(0.52, 32, 20),
+      // 加分寶石正面嵌的小五角星（原版金色星星是六芒星，這個是五角星）
+      bonusStar: makeStarGeometry(5, 0.44, 0.2, 0.06),
+      // 炸彈：跟寶石同色的圓球＋金屬蓋＋彎曲的引信（原版造型）
+      bomb: new THREE.SphereGeometry(0.74, 36, 24),
       cap: new THREE.CylinderGeometry(0.15, 0.18, 0.16, 16),
       fuse: new THREE.TubeGeometry(
         new THREE.CatmullRomCurve3([
@@ -126,39 +128,42 @@ export class BoardView {
     group.add(body);
     let label = null;
 
-    if (piece.kind === 'ball' || piece.kind === 'bomb') {
+    if (piece.kind === 'ball') {
       body.add(new THREE.Mesh(this.geo.gem, this.mat.balls[piece.color]));
+      if (piece.bonus) {
+        const star = new THREE.Mesh(this.geo.bonusStar, this.mat.star);
+        star.position.z = GEM_TOP + 0.06;
+        body.add(star);
+      }
     }
     if (piece.kind === 'bomb') {
-      // 底下的寶石標示顏色，上面坐著一顆卡通炸彈
+      // 原版：跟寶石同色的圓形炸彈，白色數字印在正中間
       const bomb = new THREE.Group();
-      bomb.position.set(0, -0.1, GEM_TOP + 0.36);
-      bomb.scale.setScalar(1.25);
+      bomb.position.z = -0.05;
       // 每顆炸彈自己一份材質，倒數快到時才能單獨閃紅
       const shell = new THREE.MeshPhysicalMaterial({
-        color: 0x1b1d26,
-        metalness: 0.35,
-        roughness: 0.22,
+        color: BALL_COLORS[piece.color],
+        roughness: 0.18,
         clearcoat: 1,
-        clearcoatRoughness: 0.05,
+        clearcoatRoughness: 0.04,
         emissive: 0xff2a00,
         emissiveIntensity: 0,
         clippingPlanes: [this.clip],
       });
       const ball = new THREE.Mesh(this.geo.bomb, shell);
-      const cap = new THREE.Mesh(this.geo.cap, this.mat.metal);
-      cap.position.set(0.2, 0.46, 0.05);
+      const cap = new THREE.Mesh(this.geo.cap, shell);
+      cap.position.set(0.3, 0.64, 0.08);
       cap.rotation.z = -0.45;
       const fuse = new THREE.Mesh(this.geo.fuse, this.mat.fuse);
-      fuse.position.set(0.24, 0.53, 0.06);
+      fuse.position.set(0.34, 0.72, 0.1);
       const spark = new THREE.Sprite(
         new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xffb030, toneMapped: false, transparent: true, depthWrite: false, clippingPlanes: [this.clip] }),
       );
-      spark.position.set(0.6, 0.79, 0.16);
+      spark.position.set(0.7, 0.98, 0.2);
       spark.userData.spark = true;
       label = makeLabel(this.clip);
-      label.sprite.position.set(0, -0.04, 0.56);
-      label.sprite.scale.setScalar(0.62);
+      label.sprite.position.set(0, -0.02, 0.8);
+      label.sprite.scale.setScalar(0.95);
       bomb.add(ball, cap, fuse, spark, label.sprite);
       body.add(bomb);
       body.userData.shell = shell;
@@ -434,18 +439,19 @@ function makeGemGeometry() {
   return geo;
 }
 
-function makeStarGeometry() {
+// 預設是金色六芒星；加分寶石上的小星星用五角星
+function makeStarGeometry(points = 6, outer = 0.88, inner = 0.42, depth = 0.22) {
   const shape = new THREE.Shape();
-  const points = 6; // 原版的星星是六芒星
   for (let k = 0; k < points * 2; k++) {
-    const r = k % 2 ? 0.42 : 0.88;
+    const r = k % 2 ? inner : outer;
     const a = Math.PI / 2 + (k * Math.PI) / points;
     const x = Math.cos(a) * r;
     const y = Math.sin(a) * r;
     if (k) shape.lineTo(x, y);
     else shape.moveTo(x, y);
   }
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.08, bevelSegments: 3 });
+  const bevel = outer / 0.88;
+  const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: 0.12 * bevel, bevelSize: 0.08 * bevel, bevelSegments: 3 });
   // 只把厚度置中，旋轉中心維持在星星正中央
   geo.computeBoundingBox();
   geo.translate(0, 0, -(geo.boundingBox.min.z + geo.boundingBox.max.z) / 2);

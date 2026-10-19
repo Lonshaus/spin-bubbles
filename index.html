@@ -68,15 +68,9 @@
         <div class="panel title-panel">
           <h1 data-i18n="title"></h1>
           <p class="subtitle" data-i18n="subtitle"></p>
-          <button class="mode" data-mode="classic">
-            <b data-i18n="mode.classic"></b>
-            <small data-i18n="mode.classic.desc"></small>
-            <span class="best-line"><span data-i18n="best"></span> <span id="best-classic">0</span></span>
-          </button>
-          <button class="mode bomb" data-mode="bomb">
-            <b>💣 <span data-i18n="mode.bomb"></span></b>
-            <small data-i18n="mode.bomb.desc"></small>
-            <span class="best-line"><span data-i18n="best"></span> <span id="best-bomb">0</span></span>
+          <button class="mode" id="btn-start">
+            <b data-i18n="start"></b>
+            <span class="best-line"><span data-i18n="best"></span> <span id="best-score">0</span></span>
           </button>
           <div class="row">
             <button class="secondary" data-open="howto" data-i18n="howto"></button>
@@ -127,15 +121,6 @@
             <span data-i18n="music"></span>
             <button id="set-music" class="toggle"></button>
           </label>
-          <label class="setting">
-            <span data-i18n="pearlWin"></span>
-            <button id="set-pearl" class="toggle"></button>
-          </label>
-          <label class="setting">
-            <span data-i18n="classicBombs"></span>
-            <button id="set-bombs" class="toggle"></button>
-          </label>
-          <p class="setting-note" data-i18n="rulesNote"></p>
           <label class="setting">
             <span data-i18n="quality"></span>
             <select id="set-quality">

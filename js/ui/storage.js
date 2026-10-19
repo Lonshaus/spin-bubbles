@@ -19,9 +19,10 @@ function write(key, value) {
   }
 }
 
-const DEFAULT_SETTINGS = { lang: 'auto', sfx: true, music: true, quality: 'auto', dir: 'cw', pearlWin: true, classicBombs: false };
+const DEFAULT_SETTINGS = { lang: 'auto', sfx: true, music: true, quality: 'auto', dir: 'cw' };
 
 export const loadSettings = () => ({ ...DEFAULT_SETTINGS, ...read('settings', {}) });
 export const saveSettings = (settings) => write('settings', settings);
-export const loadBest = (mode) => read(`best.${mode}`, 0);
-export const saveBest = (mode, score) => write(`best.${mode}`, score);
+// 以前分經典／炸彈兩個模式，合併成一種後取兩者較高的當最高分
+export const loadBest = () => read('best', Math.max(read('best.classic', 0), read('best.bomb', 0)));
+export const saveBest = (score) => write('best', score);

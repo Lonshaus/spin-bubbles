@@ -6,17 +6,10 @@ import { createRng } from './rng.js';
 import { PEARL, STAR, findMatches, findNearRings, hasMatch } from './match.js';
 import * as S from './score.js';
 
-export const MODES = ['classic', 'bomb'];
-
-const clusterScore = (c) =>
-  c.color === PEARL ? S.pearlClusterPoints(c.cells.length) : c.color === STAR ? S.starClusterPoints(c.cells.length) : S.clusterPoints(c.cells.length);
-
 export class Game {
-  // pearlWin：3 顆黑珍珠相鄰就破關；classicBombs：經典模式後期也出現炸彈
-  constructor({ mode = 'classic', seed = Date.now(), cols = 10, rows = 9, pearlWin = true, classicBombs = false } = {}) {
-    this.mode = mode;
-    this.rules = { pearlWin };
-    this.classicBombs = classicBombs;
+  // 跟原版一樣只有一種玩法：炸彈第 3 關起出現，3 顆黑珍珠相鄰就破關
+  constructor({ seed = Date.now(), cols = 10, rows = 9 } = {}) {
+    this.rules = { pearlWin: true };
     this.won = false;
     this.seed = seed;
     this.grid = new HexGrid(cols, rows);
@@ -27,7 +20,7 @@ export class Game {
     this.levelProgress = 0; // 這一關已完成的配對次數（原版的「剩餘目標」）
     this.colors = S.colorsForLevel(1);
     this.moves = 0;
-    this.bombCooldown = 0;
+    this.bombCooldown = 0; // 第 3 關起才開始倒數
     this.over = false;
     this.overReason = null;
     this.stats = { stars: 0, pearls: 0, bombsDefused: 0, bestChain: 0, cleared: 0, combos: 0, starsCleared: 0 };
@@ -35,8 +28,17 @@ export class Game {
     this.generate();
   }
 
-  newPiece(kind, color = -1, timer = 0) {
-    return { id: this.nextId++, kind, color, timer };
+  // bonus：寶石裡嵌一顆小星星，消除時那組分數 ×2
+  newPiece(kind, color = -1, timer = 0, bonus = false) {
+    return { id: this.nextId++, kind, color, timer, bonus };
+  }
+
+  clusterScore(c) {
+    const n = c.cells.length;
+    if (c.color === PEARL) return S.pearlClusterPoints(n, this.level);
+    if (c.color === STAR) return S.starClusterPoints(n, this.level);
+    const gems = c.cells.filter((i) => this.pieces[i].bonus).length;
+    return S.clusterPoints(n, this.level) * S.BONUS_MULTIPLIER ** gems;
   }
 
   // 開局：沒有現成配對，而且至少有一步可走
@@ -149,12 +151,15 @@ export class Game {
       let defused = 0;
       for (const i of [...removed, ...becomes.keys()]) if (this.pieces[i].kind === 'bomb') defused++;
 
+      // 畫面上顯示成「10x2」：底分 × 倍率（星星寶石與連鎖）
+      const plain = m.clusters.reduce((sum, c) => sum + (c.color < 0 ? this.clusterScore(c) : S.clusterPoints(c.cells.length, this.level)), 0);
       const base =
-        m.clusters.reduce((sum, c) => sum + clusterScore(c), 0) +
-        m.flowers.length * S.FLOWER_POINTS +
-        m.pearls.length * S.PEARL_POINTS +
-        defused * S.BOMB_POINTS;
-      const points = base * chain * this.level;
+        m.clusters.reduce((sum, c) => sum + this.clusterScore(c), 0) +
+        m.flowers.length * S.flowerPoints(this.level) +
+        m.pearls.length * S.pearlPoints(this.level) +
+        defused * S.bombPoints(this.level);
+      const points = base * chain;
+      const label = plain && base % plain === 0 && points / plain > 1 ? `${plain}x${points / plain}` : `${points}`;
 
       const removedInfo = [...removed].map((i) => ({ cell: i, ...this.pieces[i] }));
       const transforms = [];
@@ -180,6 +185,7 @@ export class Game {
         type: 'clear',
         chain,
         points,
+        label,
         score: this.score,
         removed: removedInfo,
         transforms,
@@ -225,21 +231,16 @@ export class Game {
   spawnPiece() {
     const color = this.rng.int(this.colors);
     if (
-      this.bombsEnabled &&
+      this.level >= S.BOMB_LEVEL &&
       this.bombCooldown <= 0 &&
       this.pieces.filter((p) => p?.kind === 'bomb').length < S.maxBombs(this.level) &&
-      this.rng.next() < 0.5
+      this.rng.next() < S.BOMB_CHANCE
     ) {
-      this.bombCooldown = S.bombInterval(this.level);
+      this.bombCooldown = S.BOMB_COOLDOWN;
       return this.newPiece('bomb', color, S.bombTimer(this.level));
     }
-    return this.newPiece('ball', color);
-  }
-
-  // 炸彈模式第 3 步起；經典模式開了炸彈設定時從第 3 級起
-  get bombsEnabled() {
-    if (this.mode === 'bomb') return this.moves >= S.BOMB_FIRST_MOVE;
-    return this.classicBombs && this.level >= S.CLASSIC_BOMB_LEVEL;
+    const bonus = this.level >= S.BONUS_LEVEL && this.rng.next() < S.BONUS_CHANCE;
+    return this.newPiece('ball', color, 0, bonus);
   }
 
   checkLevel(events) {
@@ -274,8 +275,9 @@ export class Game {
     return S.levelGoal(this.level);
   }
 
+  // 最後一關沒有目標，跟原版一樣顯示 0
   get combosToGo() {
-    return Math.max(0, this.levelGoal - this.levelProgress);
+    return Number.isFinite(this.levelGoal) ? Math.max(0, this.levelGoal - this.levelProgress) : 0;
   }
 
   // 找出一步可以產生配對的旋轉（同時用來判斷是否無步可走、以及提示）

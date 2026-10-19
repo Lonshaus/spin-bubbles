@@ -35,7 +35,10 @@ export class Director {
           const angle = p.a0 + p.delta * k;
           const r = p.r0 + (p.r1 - p.r0) * k;
           this.board.world(cx + r * Math.cos(angle), cy + r * Math.sin(angle), p.entry.group.position);
-          p.entry.group.position.z = Math.sin(Math.PI * k) * 0.6;
+          // 原版轉的時候三顆寶石會浮起來、放大
+          const lift = Math.sin(Math.PI * k);
+          p.entry.group.position.z = lift * 0.9;
+          p.entry.group.scale.setScalar(1 + lift * 0.28);
         }
       },
       ease.inOut,
@@ -53,7 +56,7 @@ export class Director {
       const entry = board.get(r.id);
       const pos = entry.group.position.clone();
       center.add(pos);
-      const color = r.kind === 'star' ? STAR_COLOR : BALL_COLORS[r.color];
+      const color = r.kind === 'star' ? STAR_COLOR : r.kind === 'pearl' ? PEARL_COLOR : BALL_COLORS[r.color];
       burst.push({ pos, color });
       if (r.kind === 'star') {
         // 星星：轉一圈縮小消失
@@ -90,7 +93,8 @@ export class Director {
     if (e.pearls) this.audio.pearl();
     if (e.defused) this.audio.defuse();
 
-    this.hud.floatText(center, `+${e.points.toLocaleString()}`, e.chain > 1 ? 'big' : '');
+    // 原版的寫法：「10」或「10x2」
+    this.hud.floatText(center, e.label, e.label.includes('x') ? 'big' : '');
     if (e.chain > 1) this.hud.callout('chain', { n: e.chain });
     if (e.pearls) this.hud.callout('pearl');
     else if (e.starClusters) this.hud.callout('starBlast');

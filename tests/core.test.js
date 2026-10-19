@@ -222,7 +222,7 @@ test('星星可以轉周圍一圈，黑珍珠有兩種 Y 字形', () => {
 });
 
 test('炸彈模式：炸彈倒數歸零就結束', () => {
-  const game = new Game({ mode: 'bomb', seed: 11 });
+  const game = new Game({ seed: 11 });
   const i = game.grid.columns[3][3];
   game.pieces[i] = game.newPiece('bomb', game.pieces[i].color, 1);
   const pivot = game.pivots().find((p) => !p.cells.includes(i) && (() => {
@@ -238,7 +238,7 @@ test('炸彈模式：炸彈倒數歸零就結束', () => {
 });
 
 test('消除炸彈可以拆除', () => {
-  const game = new Game({ mode: 'bomb', seed: 12 });
+  const game = new Game({ seed: 12 });
   const { grid } = game;
   blankBoard(game);
   const t = grid.triangles[30];
@@ -251,8 +251,8 @@ test('消除炸彈可以拆除', () => {
 });
 
 test('自動玩很多步不會出錯', () => {
-  for (const mode of ['classic', 'bomb']) {
-    const game = new Game({ mode, seed: 99 });
+  for (const seed of [99, 100]) {
+    const game = new Game({ seed });
     for (let k = 0; k < 300 && !game.over; k++) {
       const move = game.findMove();
       game.rotate(move.pivot, move.dir);
@@ -283,25 +283,70 @@ test('3 顆互相相鄰的黑珍珠 → 破關', () => {
   assert.ok(game.score >= 30000);
 });
 
-test('關掉黑珍珠破關時，3 顆黑珍珠相鄰也不會消除', () => {
-  const game = new Game({ seed: 22, pearlWin: false });
-  const { grid } = game;
-  blankBoard(game);
-  for (const i of grid.triangles[40].cells) game.pieces[i] = game.newPiece('pearl');
-  assert.equal(hasMatch(grid, game.pieces, game.rules), false);
+test('剩餘目標：第 1 關 50、每關多 10，第 7 關沒有目標', () => {
+  const game = new Game({ seed: 30 });
+  assert.equal(game.combosToGo, 50);
+  game.levelProgress = 50;
+  const events = [];
+  game.checkLevel(events);
+  assert.equal(game.level, 2);
+  assert.equal(game.combosToGo, 60);
+  game.level = 7;
+  game.levelProgress = 9999;
+  game.checkLevel(events);
+  assert.equal(game.level, 7);
+  assert.equal(game.combosToGo, 0);
 });
 
-test('經典模式開啟炸彈後，從第 3 級開始會出現炸彈', () => {
-  const off = new Game({ seed: 23 });
-  const on = new Game({ seed: 23, classicBombs: true });
-  for (const game of [off, on]) {
-    for (let k = 0; k < 400 && !game.over; k++) {
-      const move = game.findMove();
-      game.rotate(move.pivot, move.dir);
-      if (game.pieces.some((p) => p.kind === 'bomb')) break;
-    }
+test('顏色：第 1～3 關 5 色，第 4 關 6 色，第 6 關 7 色', () => {
+  const game = new Game({ seed: 31 });
+  assert.equal(game.colors, 5);
+  assert.ok(game.pieces.every((p) => p.color < 5));
+  game.levelProgress = 50 + 60 + 70;
+  game.checkLevel([]);
+  assert.equal(game.level, 4);
+  assert.equal(game.colors, 6);
+});
+
+test('彩色星星寶石：同組消除時分數 ×2，顯示成「10x2」', () => {
+  const game = new Game({ seed: 32 });
+  const { grid } = game;
+  blankBoard(game);
+  game.level = 2;
+  const t = grid.triangles[40];
+  for (const i of t.cells) game.pieces[i].color = 0;
+  game.pieces[t.cells[0]].bonus = true;
+  const events = [];
+  game.resolve(events);
+  const clear = events.find((e) => e.type === 'clear');
+  assert.equal(clear.points, 20);
+  assert.equal(clear.label, '10x2');
+});
+
+test('做出星星得 1000 × 等級', () => {
+  const game = new Game({ seed: 33 });
+  const { grid } = game;
+  blankBoard(game);
+  game.level = 7;
+  for (const j of grid.neighbors[grid.columns[4][4]]) game.pieces[j].color = 1;
+  const events = [];
+  game.resolve(events);
+  assert.equal(events.find((e) => e.type === 'clear').points, 7000);
+});
+
+test('第 3 關起才會出現炸彈與倒數 8 步；第 2 關起才有彩色星星寶石', () => {
+  const game = new Game({ seed: 34 });
+  for (let k = 0; k < 2000; k++) {
+    const p = game.spawnPiece();
+    assert.notEqual(p.kind, 'bomb');
+    assert.equal(p.bonus, false);
   }
-  assert.ok(!off.pieces.some((p) => p.kind === 'bomb'));
-  assert.ok(on.pieces.some((p) => p.kind === 'bomb') || on.overReason === 'bomb');
-  assert.ok(on.level >= 3);
+  game.level = 3;
+  let bomb = null;
+  for (let k = 0; k < 2000 && !bomb; k++) {
+    const p = game.spawnPiece();
+    if (p.kind === 'bomb') bomb = p;
+  }
+  assert.ok(bomb);
+  assert.equal(bomb.timer, 8);
 });

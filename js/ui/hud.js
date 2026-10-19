@@ -59,11 +59,12 @@ export class Hud {
     el.classList.add('show');
   }
 
+  // 原版過關時跳出「下一關！」
   levelUp(level, colors) {
-    const sub = colors > this.colors ? t('newcolor') : '';
+    const sub = [t('levelup', { n: level }), colors > this.colors ? t('newcolor') : ''].filter(Boolean).join('・');
     this.colors = colors;
     $('level').textContent = level;
-    this.callout('levelup', { n: level }, sub);
+    this.callout('nextLevel', {}, sub);
   }
 
   update(dt) {

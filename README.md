@@ -4,7 +4,7 @@
 
 A 3D tribute to the classic MSN game *Hexic* (旋轉泡泡球). Rendered with three.js, no build step required — just play it in your browser.
 
-**▶ Play now: https://lonshaus.github.io/hexic/**
+**▶ Play now: https://lonshaus.github.io/spin-bubbles/**
 
 ## How to play
 
@@ -37,4 +37,8 @@ tests/     node --test unit tests
 
 Each move, the rules layer emits a sequence of events (rotate → clear → fall → …) that the view layer simply plays back in order.
 
-This is a personal, non-commercial fan tribute and is not affiliated with Microsoft. All graphics and sounds are generated in code.
+## License
+
+[MIT](LICENSE) © 2026 Lonshaus. three.js is included under its own MIT license (`vendor/three/LICENSE`).
+
+This is a personal, non-commercial fan tribute and is not affiliated with or endorsed by Microsoft. "Hexic" is a trademark of Microsoft. All graphics and sounds are generated in code; no original game assets are used.

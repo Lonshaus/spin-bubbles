@@ -4,7 +4,7 @@
 
 向 MSN 經典遊戲致敬的旋轉泡泡球（Hexic 類型）3D 復刻版。用 three.js 繪製，不需要建置工具，直接在瀏覽器裡玩。
 
-**▶ 立即遊玩：https://lonshaus.github.io/hexic/**
+**▶ 立即遊玩：https://lonshaus.github.io/spin-bubbles/**
 
 ## 玩法
 
@@ -37,4 +37,8 @@ tests/     node --test 單元測試
 
 規則層每走一步會輸出事件序列（rotate → clear → fall → …），繪製層只負責依序播放。
 
-本專案為個人非商業的致敬作品，與 Microsoft 無關；所有圖像與聲音皆為程式即時產生。
+## 授權
+
+[MIT](LICENSE) © 2026 Lonshaus。內含的 three.js 依其本身的 MIT 授權使用（`vendor/three/LICENSE`）。
+
+本專案為個人非商業的致敬作品，與 Microsoft 無關、也未經其認可；「Hexic」是 Microsoft 的商標。所有圖像與聲音皆為程式即時產生，沒有使用原版遊戲的任何素材。

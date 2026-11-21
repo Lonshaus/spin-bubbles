@@ -1,53 +1,40 @@
-# 旋轉泡泡球 3D
+# Spin Bubbles 3D
 
-向 MSN 經典遊戲致敬的旋轉泡泡球（Hexic 類型）3D 復刻版。用 three.js 繪製，不需要建置工具，直接在 GitHub Pages 上玩。
+**English** | [繁體中文](README.zh-TW.md)
 
-## 玩法
+A 3D tribute to the classic MSN game *Hexic* (旋轉泡泡球). Rendered with three.js, no build step required — just play it in your browser.
 
-- 指向三顆球的交會點，**左鍵**往目前方向旋轉；方向用**一個鍵切換**（右鍵、空白鍵或左下角的 ↻ / ↺ 按鈕）。手機上點一下選取、再點一次旋轉。
-- **三顆互相相鄰（三角形）**的同色球會消除，直線三顆不算。掉落後再形成配對就是連鎖。
-- 上方的「剩餘目標」是這一關還要配對幾次，歸零就過關：第 1 關 50、每關多 10，第 7 關是最後一關、沒有目標。
-- 第 1～3 關 5 色，第 4 關加淺藍、第 6 關加深綠。分數：3 顆一組 5 × 等級，嵌小星星的寶石讓那組 ×2。
-- 6 顆同色圍成一圈 → 中間變成 **金色星星**（1000 × 等級）；3 顆星星相鄰不論顏色都會消除；6 顆星星圍成一圈 → **黑珍珠**（10000 × 等級）。
-- **3 顆黑珍珠相鄰就破關**。第 3 關起會掉下 **炸彈**，倒數歸零或沒步可走就結束。
-- 鍵盤：空白鍵切換方向、Enter / X 旋轉、H 提示、P / Esc 暫停、M 靜音。
+**▶ Play now: https://lonshaus.github.io/hexic/**
 
-介面支援繁體中文、英文、日文；音效與背景音樂都是 Web Audio 即時合成。
+## How to play
 
-## 安裝成 App（PWA）
+- Point at a spot where three gems meet and **left-click** to spin them in the current direction. **One key switches direction**: right-click, Space, or the ↻ / ↺ button at the bottom left. On touch screens, tap to select and tap again to spin.
+- **Three touching gems of one color (a triangle)** pop; a straight line doesn't count. Matches formed by falling gems become chains.
+- **Combos to go** at the top is how many matches are left in this level: 50 on level 1, +10 per level. Level 7 is the final level and has no goal.
+- Levels 1–3 use 5 colors; light blue joins at level 4 and dark green at level 6. Scoring: a group of three is worth 5 × level, and each gem with a small star inside doubles its group.
+- Surround a gem with 6 of one color and it becomes a **gold star** (1000 × level). Three touching stars pop regardless of color. A ring of 6 stars makes a **black pearl** (10000 × level).
+- **Get three black pearls touching to win.** From level 3, **bombs** start falling; the game ends when one counts down to zero or no moves are left.
+- Keyboard: Space switches direction, Enter / X spins, H hint, P / Esc pause, M mute.
 
-- **Android / 桌機 Chrome、Edge**：標題畫面會出現「安裝到主畫面」按鈕，或用瀏覽器選單的「安裝應用程式」。
-- **iPhone / iPad**：用 Safari 開，按分享 → 加入主畫面。
+The interface is available in Traditional Chinese, English and Japanese. All sound effects and music are synthesized live with the Web Audio API.
 
-遊戲裡也有同樣的教學：標題畫面的「安裝到主畫面」按鈕（不能直接安裝的瀏覽器會打開教學），以及「玩法說明」最後一段。
+## Install as an app (PWA)
 
-裝好之後可以離線玩。`sw.js` 採「網路優先」：有網路時一律抓最新版，離線才用快取；新增遊戲檔案時要加進 `sw.js` 的 `CORE` 清單（`npm test` 會檢查）。
+- **Android / desktop Chrome or Edge**: use the "Install app" button on the title screen, or "Install" from the browser menu.
+- **iPhone / iPad**: open it in Safari, tap Share → Add to Home Screen.
 
-## 部署到 GitHub Pages
+The same guide is built into the game (the install button opens it on browsers that can't install directly, and it's also at the end of "How to play"). Once installed it works offline and updates itself when you're online.
 
-Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。之後每次推到 `master`，`.github/workflows/pages.yml` 會先跑單元測試，通過才部署。
-
-部署時會把 `index.html`、`sw.js` 裡的 `__BUILD__` 換成 commit 編號前 7 碼：檔案網址（`?v=`）和離線快取名稱每次部署都不同，瀏覽器不會卡在舊版。遊戲的設定頁最下面會顯示目前版本（本機開發顯示 `dev`）。
-
-## 本機執行與測試
-
-```sh
-npm start   # http://localhost:8080
-npm test    # 核心規則的單元測試（不需要安裝任何套件）
-```
-
-ES modules 需要透過 HTTP 載入，直接雙擊 `index.html` 會無法執行。
-
-## 結構
+## Project structure
 
 ```
-js/core/   遊戲規則（純資料，不依賴畫面，可在 Node 測試）
-js/view/   three.js 繪製：場景、棋子、特效、事件動畫
-js/ui/     HUD、多語系、音效、localStorage
-vendor/    three.js r180（MIT，固定版本）
-tests/     node --test 單元測試
+js/core/   Game rules (pure data, no rendering, testable in Node)
+js/view/   three.js rendering: scene, pieces, effects, event animations
+js/ui/     HUD, i18n, audio, localStorage
+vendor/    three.js r180 (MIT, pinned)
+tests/     node --test unit tests
 ```
 
-規則層每走一步會輸出事件序列（rotate → clear → fall → …），繪製層只負責依序播放。
+Each move, the rules layer emits a sequence of events (rotate → clear → fall → …) that the view layer simply plays back in order.
 
-本專案為個人非商業的致敬作品，與 Microsoft 無關；所有圖像與聲音皆為程式即時產生。
+This is a personal, non-commercial fan tribute and is not affiliated with Microsoft. All graphics and sounds are generated in code.
